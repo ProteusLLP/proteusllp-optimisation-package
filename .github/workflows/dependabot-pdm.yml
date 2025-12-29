@@ -1,0 +1,50 @@
+# Auto-update pdm.lock when Dependabot updates pyproject.toml
+# This ensures the lock file stays in sync with dependency changes
+
+name: Update PDM Lock File
+
+on:
+  pull_request:
+    paths:
+      - 'pyproject.toml'
+
+jobs:
+  update-lock:
+    # Only run on Dependabot PRs
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      
+      - name: Install PDM
+        run: pip install pdm
+      
+      - name: Update PDM lock file
+        run: pdm lock --update-reuse
+      
+      - name: Commit updated lock file
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add pdm.lock
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update pdm.lock after dependency changes"
+            git push
+          fi

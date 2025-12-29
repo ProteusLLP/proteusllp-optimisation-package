@@ -1,0 +1,66 @@
+# Lightweight CPU-only Dockerfile for Proteus Optimizer Package
+# Use this for development and CI/CD
+
+FROM python:3.13-slim-bookworm AS base
+
+# Set non-interactive mode to avoid prompts during build
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install build tools and essential packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    locales \
+    && rm -rf /var/lib/apt/lists/* \
+    && sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen
+
+# Install PDM for package management
+RUN pip install --no-cache-dir pdm
+
+# Set working directory
+WORKDIR /app
+
+# Copy dependency files
+COPY pyproject.toml ./
+COPY requirements.txt ./
+
+# PAL will be installed from PyPI via requirements.txt
+
+# DEVELOPMENT STAGE ========================================
+FROM base AS dev
+
+# Install development tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    sudo \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for development
+RUN useradd -m -s /bin/bash vscode && \
+    usermod -aG sudo vscode && \
+    echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Dependencies will be installed via PDM in postCreateCommand
+# This keeps the dev image lightweight
+
+# Switch to non-root user
+USER vscode
+
+# Set working directory
+WORKDIR /proteus-optimisation-package
+
+# CI STAGE ==================================================
+FROM base AS ci
+
+# Set working directory
+WORKDIR /app
+
+# Copy source code for CI
+COPY . .
+
+# Install dependencies and package with PDM
+RUN pdm install -dG test
+
+# Run tests by default
+CMD ["pytest", "tests/", "-v", "--cov=optimizer", "--cov-report=term-missing"]

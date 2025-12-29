@@ -1,0 +1,12 @@
+{
+  "include": ["optimizer", "tests", "examples"],
+  "exclude": ["**/node_modules/**", "**/.venv/**", "**/__pycache__/**", "**/build/**", "**/dist/**"],
+  "strict": ["optimizer"],
+  "typeCheckingMode": "strict",
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "pythonVersion": "3.13",
+  "pythonPlatform": "Linux",
+  "venvPath": ".",
+  "venv": ".venv"
+}

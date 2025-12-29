@@ -1,0 +1,118 @@
+<div align="center">
+  <img src="POP.svg" alt="POP Logo" width="150"/>
+  <h1>Proteus Optimisation Package (POP)</h1>
+  <p>Domain-agnostic stochastic optimization engine for <a href="https://proteusllp-actuarial-library.readthedocs.io/">PAL (Proteus Actuarial Library)</a> variables.</p>
+</div>
+
+## Features
+
+- **🎯 Metric-Centric Design**: Unified framework for objectives and constraints
+- **📊 Multiple Metric Types**: Mean, Std, SpreadVaR, plus composite metrics (Ratio, Product, Sum, Difference)
+- **🔗 Composite Metrics**: Build complex metrics like Sharpe ratios, risk-adjusted returns
+- **🎲 Dual Data Support**: StochasticScalar (aggregated) and FreqSevSims (frequency-severity)
+- **⚖️ Flexible Constraints**: Portfolio-level and occurrence-level constraints
+- **📈 Efficient Frontiers**: Parallel constraint variation for risk-return tradeoff analysis
+- **✅ Type-Safe API**: Pydantic models with comprehensive validation
+
+## Installation
+
+### From PyPI
+
+```bash
+pip install proteusllp-optimisation-package
+```
+
+### From Local Source (Development)
+
+```bash
+pip install -e /proteus-optimisation-package
+```
+
+## Quick Start
+
+```python
+from optimizer import (
+    ObjectiveSpec, OptimizationInput, SimpleConstraint,
+    MeanMetric, StdMetric, optimize
+)
+from pal.variables import ProteusVariable
+from pal import StochasticScalar
+
+# Create PAL variable with return simulations
+returns = ProteusVariable("item", {
+    "stock_a": StochasticScalar([0.10, 0.12, 0.08]),
+    "stock_b": StochasticScalar([0.15, 0.18, 0.12])
+})
+
+# Define objective: maximize expected return
+objective = ObjectiveSpec(
+    objective_value=returns,
+    metric=MeanMetric(),
+    direction="maximize"
+)
+
+# Add risk constraint: limit portfolio std dev
+risk_constraint = SimpleConstraint(
+    constraint_value=returns,
+    metric=StdMetric(),
+    threshold=0.15,
+    direction="cap",
+    name="max_risk"
+)
+
+# Create optimization problem
+opt_input = OptimizationInput(
+    item_ids=["stock_a", "stock_b"],
+    current_shares={"stock_a": 100.0, "stock_b": 100.0},
+    objective=objective,
+    simple_constraints=[risk_constraint]
+)
+
+# Run optimization
+result = optimize(opt_input.preprocess())
+print(f"Optimal shares: {result.optimal_shares}")
+print(f"Expected return: {result.objective_value:.4f}")
+```
+
+## Documentation
+
+Full documentation is available at [proteusllp-optimisation-package.readthedocs.io](https://proteusllp-optimisation-package.readthedocs.io).
+
+## Requirements
+
+- Python 3.13+
+- PAL (Proteus Analytics Library) >=0.2.8
+- NumPy >=2.2
+- SciPy >=1.15
+- Pydantic >=2.0
+- cvxopt
+
+## Development
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/ProteusLLP/proteus-optimisation-package.git
+cd proteus-optimisation-package
+
+# Open in VS Code - will prompt to reopen in devcontainer
+code .  # Runs 'pdm install' automatically
+
+# Or install locally with PDM
+pdm install
+```
+
+### Running Checks
+
+```bash
+pytest tests/ -v
+```
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Contributing
+
+Contributions welcome! Please see CONTRIBUTING.md for guidelines.
