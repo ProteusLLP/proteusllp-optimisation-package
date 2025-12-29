@@ -39,9 +39,9 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ProteusLLP/proteus-optimisation-package"
-Repository = "https://github.com/ProteusLLP/proteus-optimisation-package"
-Issues = "https://github.com/ProteusLLP/proteus-optimisation-package/issues"
+Homepage = "https://github.com/ProteusLLP/proteusllp-optimisation-package"
+Repository = "https://github.com/ProteusLLP/proteusllp-optimisation-package"
+Issues = "https://github.com/ProteusLLP/proteusllp-optimisation-package/issues"
 Documentation = "https://proteusllp-optimisation-package.readthedocs.io/"
 
 [build-system]

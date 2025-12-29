@@ -20,8 +20,8 @@ This will automatically install all required dependencies including PAL.
 For development or to use the latest unreleased version:
 
 ```bash
-git clone https://github.com/ProteusLLP/proteus-optimisation-package.git
-cd proteus-optimisation-package
+git clone https://github.com/ProteusLLP/proteusllp-optimisation-package.git
+cd proteusllp-optimisation-package
 
 # Recommended: Use devcontainer in VS Code
 # Opens repo → VS Code prompts to reopen in container → runs 'pdm install' automatically

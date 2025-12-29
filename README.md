@@ -93,8 +93,8 @@ Full documentation is available at [proteusllp-optimisation-package.readthedocs.
 
 ```bash
 # Clone the repository
-git clone https://github.com/ProteusLLP/proteus-optimisation-package.git
-cd proteus-optimisation-package
+git clone https://github.com/ProteusLLP/proteusllp-optimisation-package.git
+cd proteusllp-optimisation-package
 
 # Open in VS Code - will prompt to reopen in devcontainer
 code .  # Runs 'pdm install' automatically
