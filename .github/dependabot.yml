@@ -1,0 +1,22 @@
+# Dependabot configuration for automated dependency updates
+version: 2
+updates:
+  # Update GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+  
+  # Update Python dependencies via pip (for pyproject.toml)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "python"
+    # Dependabot will update pyproject.toml
+    # Then our workflow will auto-update pdm.lock
