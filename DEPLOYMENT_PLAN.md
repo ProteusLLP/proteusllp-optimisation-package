@@ -21,9 +21,16 @@ This document outlines the remaining steps to deploy POP to PyPI.
 - Remote configured: `https://github.com/ProteusLLP/proteusllp-optimisation-package.git`
 
 ❌ **Blocked by PAL 0.2.8 Publication:**
+- Removal of temporary local PAL setup (pyproject.toml + devcontainer mounts)
 - `pdm.lock` file generation
 - Testing with PyPI-installed PAL
 - First PyPI release
+
+⚠️ **Current Development Setup:**
+- Local PAL mounted at `/pal-local` in devcontainers
+- `pyproject.toml` references local PAL via file:///pal-local
+- All temporary configs marked with `=== TEMPORARY ... ===` comments
+- **MUST BE REMOVED before publishing** (see Phase 3.0)
 
 🔄 **Pending (Not Blocked):**
 - GitHub repository creation
@@ -116,11 +123,52 @@ git push -u origin feature/initial-package-structure
 
 **Cannot proceed until PAL 0.2.8+ is published to PyPI.**
 
+### Current Temporary Setup for Development
+
+**The following temporary configurations are in place to enable testing with local PAL:**
+
+1. **`pyproject.toml`** - Lines 25-30:
+   - Uses local PAL: `"proteusllp-actuarial-library @ file:///pal-local"`
+   - Marked with `=== TEMPORARY DEV SETUP ===` comments
+
+2. **`.devcontainer/cpu/devcontainer.json`** - Lines 13-16:
+   - Mounts local PAL at `/pal-local`
+   - Marked with `=== TEMPORARY DEV MOUNT ===` comments
+
+3. **`.devcontainer/gpu/devcontainer.json`** - Lines 17-20:
+   - Mounts local PAL at `/pal-local`
+   - Marked with `=== TEMPORARY DEV MOUNT ===` comments
+
 ### Prerequisites:
 - `proteusllp-actuarial-library>=0.2.8` must be available on PyPI
-- Current pyproject.toml requires: `proteusllp-actuarial-library>=0.2.8`
+- Current pyproject.toml requires: `proteusllp-actuarial-library>=0.2.8` (commented out during dev)
 
 ### Once PAL is Published:
+
+**3.0 Remove Temporary Development Setup** ⚠️ **CRITICAL - DO THIS FIRST**
+
+```bash
+# Edit pyproject.toml:
+# 1. DELETE line: "proteusllp-actuarial-library @ file:///pal-local",
+# 2. UNCOMMENT line: # "proteusllp-actuarial-library>=0.2.8",
+# 3. DELETE all lines marked with "=== TEMPORARY DEV SETUP ==="
+
+# Edit .devcontainer/cpu/devcontainer.json:
+# 1. DELETE the PAL mount line (line with /pal-local)
+# 2. DELETE all lines marked with "=== TEMPORARY DEV MOUNT ==="
+
+# Edit .devcontainer/gpu/devcontainer.json:
+# 1. DELETE the PAL mount line (line with /pal-local)
+# 2. DELETE all lines marked with "=== TEMPORARY DEV MOUNT ==="
+
+# Commit these changes first!
+git add pyproject.toml .devcontainer/cpu/devcontainer.json .devcontainer/gpu/devcontainer.json
+git commit -m "Remove temporary local PAL setup for PyPI release
+
+- Switch to PyPI PAL dependency (>=0.2.8)
+- Remove local PAL mount from devcontainers
+- Ready for production publishing"
+```
 
 **3.1 Generate Lock File**
 ```bash
@@ -381,6 +429,9 @@ python -c "import optimizer; print(optimizer.__version__)"
 - [ ] Add Codecov token (optional)
 
 ### After PAL 0.2.8 Published
+- [ ] **CRITICAL: Remove temporary local PAL setup** (pyproject.toml + devcontainer mounts)
+- [ ] Commit the cleanup changes
+- [ ] Rebuild devcontainer
 - [ ] Generate pdm.lock file
 - [ ] Test installation with PyPI PAL
 - [ ] Run full test suite

@@ -23,7 +23,12 @@ classifiers = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "proteusllp-actuarial-library>=0.2.8",
+    # === TEMPORARY DEV SETUP - REMOVE BEFORE PUBLISHING ===
+    # Local PAL for development (mounted at /pal-local in devcontainer)
+    "proteusllp-actuarial-library @ file:///pal-local",
+    # When PAL 0.2.8 is published, DELETE the line above and UNCOMMENT below:
+    # "proteusllp-actuarial-library>=0.2.8",
+    # === END TEMPORARY DEV SETUP ===
     "numpy>=2.2",
     "scipy>=1.15",
     "pydantic>=2.0",
@@ -90,3 +95,12 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --cov=optimizer --cov-report=term-missing"
+
+[dependency-groups]
+test = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+]
+dev = [
+    "ruff>=0.14.10",
+]

@@ -23,9 +23,8 @@ WORKDIR /app
 
 # Copy dependency files
 COPY pyproject.toml ./
-COPY requirements.txt ./
 
-# PAL will be installed from PyPI via requirements.txt
+# Dependencies will be installed via PDM
 
 # DEVELOPMENT STAGE ========================================
 FROM base AS dev
