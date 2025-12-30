@@ -63,8 +63,8 @@ WORKDIR /app
 # Copy source code for CI
 COPY . .
 
-# Install dependencies and package with PDM
-RUN pdm install -dG test
+# Install all dev dependencies (includes test tools + static analysis tools)
+RUN pdm install -dG test -dG dev
 
 # Run tests by default
 CMD ["pytest", "tests/", "-v", "--cov=optimizer", "--cov-report=term-missing"]
