@@ -1,5 +1,4 @@
-"""
-Scipy optimization interface for the portfolio optimizer.
+"""Scipy optimization interface for the portfolio optimizer.
 
 This module provides the main optimization entry point that orchestrates
 the transformation from Pydantic models to scipy.optimize.minimize() and
@@ -13,7 +12,6 @@ Key Functions:
 """
 
 import time
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from scipy.optimize import OptimizeResult, minimize  # type: ignore
@@ -24,10 +22,10 @@ from .transforms import constraint_wrapper, create_metric_calculator, objective_
 
 
 def optimize(optimization_input: OptimizationInput) -> OptimizationResult:
-    """
-    Main optimization entry point.
+    """Main optimization entry point.
 
-    Transforms OptimizationInput (Pydantic) → scipy.optimize.minimize() → OptimizationResult
+    Transforms OptimizationInput (Pydantic) → scipy.optimize.minimize()
+    → OptimizationResult
 
     Args:
         optimization_input: Complete optimization problem specification
@@ -53,7 +51,10 @@ def optimize(optimization_input: OptimizationInput) -> OptimizationResult:
     try:
         # Step 1: Validate input readiness
         if not optimization_input.is_preprocessed:
-            raise ValueError("OptimizationInput is not ready for optimization. Please call preprocess() first.")
+            raise ValueError(
+                "OptimizationInput is not ready for optimization. "
+                "Please call preprocess() first."
+            )
 
         # Get config early to use verbose flag
         config = optimization_input.config or DEFAULT_CONFIG
@@ -76,32 +77,45 @@ def optimize(optimization_input: OptimizationInput) -> OptimizationResult:
         # Process SimpleConstraints
         for constraint in optimization_input.simple_constraints:
             const_value_func, const_grad_func = create_metric_calculator(
-                constraint.metric, constraint.constraint_value, optimization_input.item_ids
+                constraint.metric,
+                constraint.constraint_value,
+                optimization_input.item_ids,
             )
 
             constraint_dict = constraint_wrapper(
-                const_value_func, const_grad_func, constraint.threshold, constraint.direction
+                const_value_func,
+                const_grad_func,
+                constraint.threshold,
+                constraint.direction,
             )
             scipy_constraints.append(constraint_dict)
 
         # Process FreqSevConstraints
         for freqsev_constraint in optimization_input.freqsev_constraints:
             const_value_func, const_grad_func = create_metric_calculator(
-                freqsev_constraint.metric, freqsev_constraint.constraint_value, optimization_input.item_ids
+                freqsev_constraint.metric,
+                freqsev_constraint.constraint_value,
+                optimization_input.item_ids,
             )
 
             constraint_dict = constraint_wrapper(
-                const_value_func, const_grad_func, freqsev_constraint.threshold, freqsev_constraint.direction
+                const_value_func,
+                const_grad_func,
+                freqsev_constraint.threshold,
+                freqsev_constraint.direction,
             )
             scipy_constraints.append(constraint_dict)
 
         # Step 4: Transform bounds to scipy format
-        scipy_bounds = bounds_to_scipy_bounds(optimization_input.share_bounds, optimization_input.item_ids)
+        scipy_bounds = bounds_to_scipy_bounds(
+            optimization_input.share_bounds, optimization_input.item_ids
+        )
 
         # Step 5: Generate initial guess
         # After readiness check, current_shares is guaranteed to be populated
         initial_guess = get_initial_guess(
-            optimization_input.current_shares, optimization_input.item_ids  # type: ignore
+            optimization_input.current_shares,
+            optimization_input.item_ids,  # type: ignore
         )
 
         # Step 6: Call scipy.optimize.minimize
@@ -122,8 +136,13 @@ def optimize(optimization_input: OptimizationInput) -> OptimizationResult:
             grad_norm = np.linalg.norm(grad)
             iteration_data["obj_values"].append(obj_val)
             iteration_data["grad_norms"].append(grad_norm)
-            if verbose and (iteration_data["count"] <= 5 or iteration_data["count"] % 10 == 0):
-                print(f"  Iter {iteration_data['count']}: obj={obj_val:.8f}, |grad|={grad_norm:.8f}")
+            if verbose and (
+                iteration_data["count"] <= 5 or iteration_data["count"] % 10 == 0
+            ):
+                print(
+                    f"  Iter {iteration_data['count']}: obj={obj_val:.8f}, "
+                    f"|grad|={grad_norm:.8f}"
+                )
 
         scipy_result = minimize(
             fun=scipy_objective,
@@ -132,19 +151,34 @@ def optimize(optimization_input: OptimizationInput) -> OptimizationResult:
             bounds=scipy_bounds,
             constraints=all_constraints,
             method="SLSQP",  # Sequential Least Squares Programming
-            options={"maxiter": max_iter, "ftol": tolerances["ftol"], "disp": verbose},
-            tol=0.0001,  # Constraint tolerance - matches old optimizer for compatibility
+            options={
+                "maxiter": max_iter,
+                "ftol": tolerances["ftol"],
+                "disp": verbose,
+            },
+            tol=0.0001,  # Constraint tolerance - old optimizer compatibility
             callback=callback,
         )
 
         # Log summary if few iterations (only if verbose)
         if verbose and iteration_data["count"] <= 3:
-            print(f"\n⚠️  Optimization exited after only {iteration_data['count']} iterations")
-            print(f"   Initial obj: {iteration_data['obj_values'][0] if iteration_data['obj_values'] else 'N/A':.8f}")
-            print(f"   Final obj: {scipy_result.fun:.8f}")
             print(
-                f"   Initial |grad|: {iteration_data['grad_norms'][0] if iteration_data['grad_norms'] else 'N/A':.8f}"
+                f"\n⚠️  Optimization exited after only "
+                f"{iteration_data['count']} iterations"
             )
+            obj_initial = (
+                iteration_data["obj_values"][0]
+                if iteration_data["obj_values"]
+                else "N/A"
+            )
+            print(f"   Initial obj: {obj_initial:.8f}")
+            print(f"   Final obj: {scipy_result.fun:.8f}")
+            grad_initial = (
+                iteration_data["grad_norms"][0]
+                if iteration_data["grad_norms"]
+                else "N/A"
+            )
+            print(f"   Initial |grad|: {grad_initial:.8f}")
             if iteration_data["grad_norms"]:
                 print(f"   Final |grad|: {iteration_data['grad_norms'][-1]:.8f}")
 
@@ -162,7 +196,7 @@ def optimize(optimization_input: OptimizationInput) -> OptimizationResult:
         optimization_time = time.time() - start_time
         return OptimizationResult(
             success=False,
-            optimal_shares={item_id: 0.0 for item_id in optimization_input.item_ids},
+            optimal_shares=dict.fromkeys(optimization_input.item_ids, 0.0),
             objective_value=float("nan"),
             constraint_results=[],
             status=9,  # Error status
@@ -172,9 +206,10 @@ def optimize(optimization_input: OptimizationInput) -> OptimizationResult:
         )
 
 
-def get_initial_guess(current_shares: Dict[str, float], item_ids: List[str]) -> np.ndarray:
-    """
-    Generate initial guess for optimization.
+def get_initial_guess(
+    current_shares: dict[str, float], item_ids: list[str]
+) -> np.ndarray:
+    """Generate initial guess for optimization.
 
     Args:
         current_shares: Dict of current shares by item_id (guaranteed by preprocessing)
@@ -192,10 +227,9 @@ def get_initial_guess(current_shares: Dict[str, float], item_ids: List[str]) -> 
 
 
 def bounds_to_scipy_bounds(
-    share_bounds: Optional[Dict[str, BoundsSpec]], item_ids: List[str]
-) -> Optional[List[Tuple[float, float]]]:
-    """
-    Convert BoundsSpec to scipy bounds format.
+    share_bounds: dict[str, BoundsSpec] | None, item_ids: list[str]
+) -> list[tuple[float, float]] | None:
+    """Convert BoundsSpec to scipy bounds format.
 
     Args:
         share_bounds: Bounds specification per item (may be None)
@@ -227,16 +261,17 @@ def process_scipy_result(
     optimization_input: OptimizationInput,
     optimization_time: float,
 ) -> OptimizationResult:
-    """
-    Process scipy optimization result and evaluate constraints.
+    """Process scipy optimization result and evaluate constraints.
 
     Args:
         scipy_result: Result from scipy.optimize.minimize()
-        optimization_input: Original optimization problem specification (with scaling factors)
+        optimization_input: Original optimization problem specification
+            (with scaling factors)
         optimization_time: Total optimization time in seconds
 
     Returns:
-        OptimizationResult with optimal solution and constraint evaluations (unscaled to original units)
+        OptimizationResult with optimal solution and constraint
+        evaluations (unscaled to original units)
 
     Note:
         For maximization problems, we need to negate scipy_result.fun
@@ -244,13 +279,13 @@ def process_scipy_result(
 
         If autoscaling was applied during preprocessing, this function unscales:
         - optimal_shares: multiply by _share_scales
-        - objective_value: multiply by _obj_scale (currently 1.0 - scaling disabled)
-        - constraint results: multiply by _constraint_scales (currently 1.0 - scaling disabled)
+        - objective_value: multiply by _obj_scale (disabled, set to 1.0)
+        - constraint results: multiply by _constraint_scales (disabled, 1.0)
 
-        NOTE: Objective/constraint scaling is currently disabled due to scale-invariant
-        composite metrics (e.g., RatioMetric). The scaling factors exist but are set to 1.0.
+        NOTE: Objective/constraint scaling is currently disabled due to
+        scale-invariant composite metrics (e.g., RatioMetric).
+        The scaling factors exist but are set to 1.0.
     """
-
     # Extract optimal weights (still in scaled units)
     optimal_weights = scipy_result.x
 
@@ -258,11 +293,16 @@ def process_scipy_result(
     if optimization_input._share_scales is not None:
         optimal_shares = {
             item_id: float(weight * optimization_input._share_scales[item_id])
-            for item_id, weight in zip(optimization_input.item_ids, optimal_weights)
+            for item_id, weight in zip(
+                optimization_input.item_ids, optimal_weights, strict=True
+            )
         }
     else:
         optimal_shares = {
-            item_id: float(weight) for item_id, weight in zip(optimization_input.item_ids, optimal_weights)
+            item_id: float(weight)
+            for item_id, weight in zip(
+                optimization_input.item_ids, optimal_weights, strict=True
+            )
         }
 
     # Get objective value (un-negate for maximization)
@@ -275,7 +315,7 @@ def process_scipy_result(
     if optimization_input._obj_scale is not None:
         objective_value = objective_value * optimization_input._obj_scale
 
-    # Evaluate all constraints at optimal solution (returns scaled results) (returns scaled results)
+    # Evaluate all constraints at optimal solution (returns scaled results)
     constraint_results = _evaluate_constraints(optimization_input, optimal_weights)
 
     # Unscale constraint results if autoscaling was applied
@@ -313,9 +353,8 @@ def process_scipy_result(
 def _evaluate_constraints(
     optimization_input: OptimizationInput,
     optimal_weights: np.ndarray,
-) -> List[ConstraintResult]:
-    """
-    Evaluate all constraints at the optimal solution.
+) -> list[ConstraintResult]:
+    """Evaluate all constraints at the optimal solution.
 
     Args:
         optimization_input: Optimization problem specification

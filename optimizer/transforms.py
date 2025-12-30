@@ -1,5 +1,4 @@
-"""
-Metric-centric transformation functions for optimization.
+"""Metric-centric transformation functions for optimization.
 
 This module implements the core mathematical transformations that convert
 Pydantic models (ObjectiveSpec, Constraints) into scipy-compatible functions
@@ -18,7 +17,8 @@ Key Components:
 - objective_wrapper(), constraint_wrapper(): Context handling
 """
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 from pal import FreqSevSims, StochasticScalar
@@ -44,8 +44,7 @@ def calculate_percentile_mask(
     lower_percentile: float,
     upper_percentile: float,
 ) -> np.ndarray:
-    """
-    Calculate mask for values in a percentile range.
+    """Calculate mask for values in a percentile range.
 
     This is the expensive operation (O(n log n)) due to ranking.
     Should be cached to avoid redundant computation.
@@ -79,13 +78,14 @@ def calculate_spreadvar_on_values(
     lower_percentile: float,
     upper_percentile: float,
 ) -> float:
-    """
-    Calculate SpreadVar (mean of values in percentile range) for a 1D array.
+    """Calculate SpreadVar for a 1D array.
 
-    This is a shared helper used by both StochasticScalar and FreqSevSims spreadvar calculators.
+    Mean of values in percentile range. This is a shared helper used
+    by both StochasticScalar and FreqSevSims spreadvar calculators.
 
     Args:
-        values: 1D array of simulation values (e.g., portfolio returns or occurrence values)
+        values: 1D array of simulation values (e.g., portfolio
+        returns or occurrence values)
         lower_percentile: Lower percentile bound (0-100 scale)
         upper_percentile: Upper percentile bound (0-100 scale)
 
@@ -118,10 +118,10 @@ def calculate_spreadvar_gradient_on_matrix(
     lower_percentile: float,
     upper_percentile: float,
 ) -> np.ndarray:
-    """
-    Calculate SpreadVar gradient using rank-based masking on a simulation matrix.
+    """Calculate SpreadVar gradient using rank-based masking.
 
-    This is a shared helper used by both StochasticScalar and FreqSevSims spreadvar calculators.
+    This is a shared helper used by both StochasticScalar and
+    FreqSevSims spreadvar calculators.
 
     Args:
         sim_matrix: 2D array [n_sims x n_items] of item simulations
@@ -164,10 +164,9 @@ def calculate_spreadvar_gradient_on_matrix(
 
 
 def create_scalar_mean(
-    pal_variable: ProteusVariable, item_ids: List[str]
-) -> Tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
-    """
-    Create portfolio mean calculator for StochasticScalar data.
+    pal_variable: ProteusVariable, item_ids: list[str]
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
+    """Create portfolio mean calculator for StochasticScalar data.
 
     Args:
         pal_variable: ProteusVariable containing StochasticScalar objects
@@ -182,26 +181,27 @@ def create_scalar_mean(
         Portfolio Mean = E[w₁R₁ + w₂R₂ + ... + wₙRₙ] = w₁E[R₁] + w₂E[R₂] + ... + wₙE[Rₙ]
         Gradient = [E[R₁], E[R₂], ..., E[Rₙ]]  (analytical - very efficient!)
     """
-
     # Extract mean returns for each asset (pre-compute for efficiency)
     asset_means = {}
     for item_id in item_ids:
         stoch_scalar = pal_variable.values[item_id]  # type: ignore
         # Minimal type check for runtime safety
         if not isinstance(stoch_scalar, StochasticScalar):
-            raise ValueError(f"Expected StochasticScalar for item '{item_id}', " f"got {type(stoch_scalar).__name__}")
+            raise ValueError(
+                f"Expected StochasticScalar for item '{item_id}', "
+                f"got {type(stoch_scalar).__name__}"
+            )
         asset_means[item_id] = float(np.mean(stoch_scalar.values))
 
     # Create ordered array for efficient computation
     means_array = np.array([asset_means[item_id] for item_id in item_ids])
 
     def portfolio_mean_value(weights: np.ndarray) -> float:
-        """Compute portfolio expected return: Σ(wᵢ * E[Rᵢ])"""
+        """Compute portfolio expected return: Σ(wᵢ * E[Rᵢ])."""
         return float(np.dot(weights, means_array))
 
     def portfolio_mean_gradient(weights: np.ndarray) -> np.ndarray:
-        """
-        Compute gradient of portfolio mean.
+        """Compute gradient of portfolio mean.
 
         Since ∂(Σ wᵢ * E[Rᵢ])/∂wⱼ = E[Rⱼ], gradient is just the asset means.
         Note: weights parameter unused but kept for consistent signature.
@@ -212,10 +212,9 @@ def create_scalar_mean(
 
 
 def create_scalar_std(
-    pal_variable: ProteusVariable, item_ids: List[str]
-) -> Tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
-    """
-    Create portfolio standard deviation calculator for StochasticScalar data.
+    pal_variable: ProteusVariable, item_ids: list[str]
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
+    """Create portfolio standard deviation calculator for StochasticScalar data.
 
     Args:
         pal_variable: ProteusVariable containing StochasticScalar objects
@@ -230,7 +229,6 @@ def create_scalar_std(
         Portfolio Std = √(w'Σw) where Σ is the covariance matrix
         Gradient = (Σw) / √(w'Σw)  (normalized covariance terms)
     """
-
     # Extract simulation data and compute covariance matrix
     simulation_data = {}
     for item_id in item_ids:
@@ -249,7 +247,7 @@ def create_scalar_std(
     cov_matrix = np.cov(sim_matrix, rowvar=False)
 
     def portfolio_std_value(weights: np.ndarray) -> float:
-        """Compute portfolio standard deviation: √(w'Σw)"""
+        """Compute portfolio standard deviation: √(w'Σw)."""
         portfolio_variance = np.dot(weights, np.dot(cov_matrix, weights))
 
         # Handle numerical edge cases
@@ -259,8 +257,7 @@ def create_scalar_std(
         return float(np.sqrt(portfolio_variance))
 
     def portfolio_std_gradient(weights: np.ndarray) -> np.ndarray:
-        """
-        Compute gradient of portfolio standard deviation.
+        """Compute gradient of portfolio standard deviation.
 
         ∂√(w'Σw)/∂wᵢ = (Σw)ᵢ / √(w'Σw)
         """
@@ -279,10 +276,9 @@ def create_scalar_std(
 
 
 def create_scalar_spreadvar(
-    pal_variable: ProteusVariable, item_ids: List[str], lower: float, upper: float
-) -> Tuple[Callable[[np.ndarray], float], Optional[Callable[[np.ndarray], np.ndarray]]]:
-    """
-    Create SpreadVar calculator for StochasticScalar data with mask caching.
+    pal_variable: ProteusVariable, item_ids: list[str], lower: float, upper: float
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray] | None]:
+    """Create SpreadVar calculator for StochasticScalar data with mask caching.
 
     Args:
         pal_variable: ProteusVariable containing StochasticScalar objects
@@ -307,15 +303,15 @@ def create_scalar_spreadvar(
         the percentile range of the aggregated distribution. For more accurate
         results with frequency-severity data, use create_freqsev_spreadvar() instead.
     """
-
     # Extract simulation data
     simulation_data = {}
     for item_id in item_ids:
         stoch_scalar = pal_variable.values[item_id]  # type: ignore
         if not isinstance(stoch_scalar, StochasticScalar):
             raise ValueError(
-                f"create_scalar_spreadvar expects StochasticScalar for item '{item_id}', "
-                f"got {type(stoch_scalar).__name__}"
+                f"create_scalar_spreadvar expects StochasticScalar "
+                f"for item '{item_id}', got "
+                f"{type(stoch_scalar).__name__}"
             )
         simulation_data[item_id] = stoch_scalar.values
 
@@ -323,8 +319,8 @@ def create_scalar_spreadvar(
     sim_matrix = np.column_stack([simulation_data[item_id] for item_id in item_ids])
 
     # Single-entry cache for mask
-    _cached_weights: Optional[tuple] = None
-    _cached_mask: Optional[np.ndarray] = None
+    _cached_weights: tuple | None = None
+    _cached_mask: np.ndarray | None = None
 
     def _get_cached_mask(agg_values: np.ndarray, weights: np.ndarray) -> np.ndarray:
         """Get or compute mask for given aggregated values and weights."""
@@ -372,17 +368,18 @@ def create_scalar_spreadvar(
 
 
 def create_freqsev_mean(
-    freqsev_items: List[FreqSevSims], item_ids: List[str]
-) -> Tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
-    """
-    Create value and gradient functions for mean of FreqSevSims occurrence.
+    freqsev_items: list[FreqSevSims], item_ids: list[str]
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
+    """Create value and gradient functions for mean of FreqSevSims occurrence.
 
     Uses analytical gradients via indicator approach:
     - Value: weight items → sum → occurrence → mean
-    - Gradient: create indicator where combined==max → multiply by original → aggregate → mean
+    - Gradient: create indicator where combined==max → multiply by
+      original → aggregate → mean
 
     Args:
-        freqsev_items: List of FreqSevSims objects (one per portfolio item)
+        freqsev_items: List of FreqSevSims objects
+        (one per portfolio item)
         item_ids: List of item identifiers (for error messages)
 
     Returns:
@@ -406,7 +403,11 @@ def create_freqsev_mean(
 
         # Step 4: Create max values as FreqSevSims for proper comparison
         max_values_array = occurrence.values[combined.sim_index]
-        max_values_freqsev = FreqSevSims(sim_index=combined.sim_index, values=max_values_array, n_sims=combined.n_sims)
+        max_values_freqsev = FreqSevSims(
+            sim_index=combined.sim_index,
+            values=max_values_array,
+            n_sims=combined.n_sims,
+        )
 
         # Step 5: Calculate gradient for each item using indicator approach
         gradient = np.zeros(n_items)
@@ -426,10 +427,9 @@ def create_freqsev_mean(
 
 
 def create_freqsev_std(
-    freqsev_items: List[FreqSevSims], item_ids: List[str]
-) -> Tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
-    """
-    Create value and gradient functions for std of FreqSevSims occurrence.
+    freqsev_items: list[FreqSevSims], item_ids: list[str]
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
+    """Create value and gradient functions for std of FreqSevSims occurrence.
 
     Uses analytical gradients via indicator approach with chain rule for std.
 
@@ -465,7 +465,11 @@ def create_freqsev_std(
 
         # Create max values as FreqSevSims for proper comparison
         max_values_array = occ_values[combined.sim_index]
-        max_values_freqsev = FreqSevSims(sim_index=combined.sim_index, values=max_values_array, n_sims=combined.n_sims)
+        max_values_freqsev = FreqSevSims(
+            sim_index=combined.sim_index,
+            values=max_values_array,
+            n_sims=combined.n_sims,
+        )
 
         # Calculate gradient for each item
         gradient = np.zeros(n_items)
@@ -476,9 +480,10 @@ def create_freqsev_std(
             aggregated_contrib = contribution.aggregate()
 
             # Gradient of occurrence w.r.t. weights
-            grad_occurrence = aggregated_contrib.values  # Shape: (n_sims,)
+            grad_occurrence = aggregated_contrib.values  # (n_sims,)
 
-            # Chain rule: d(std)/d(weight) = d(std)/d(occurrence) * d(occurrence)/d(weight)
+            # Chain rule: d(std)/d(weight) =
+            #   d(std)/d(occurrence) * d(occurrence)/d(weight)
             # d(std)/d(occurrence_i) = (occurrence_i - mean) / std
             gradient[i] = np.mean((occ_values - mean_occ) * grad_occurrence) / std_occ
 
@@ -488,13 +493,12 @@ def create_freqsev_std(
 
 
 def create_freqsev_spreadvar(
-    freqsev_items: List[FreqSevSims],
-    item_ids: List[str],
+    freqsev_items: list[FreqSevSims],
+    item_ids: list[str],
     lower_percentile: float,
     upper_percentile: float,
-) -> Tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
-    """
-    Create value and gradient functions for SpreadVar of FreqSevSims occurrence.
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
+    """Create value and gradient functions for SpreadVar of FreqSevSims occurrence.
 
     Uses analytical gradients via indicator approach with cached mask.
 
@@ -510,17 +514,21 @@ def create_freqsev_spreadvar(
     n_items = len(freqsev_items)
 
     # Cache for mask calculation (single-entry cache)
-    _cached_weights: Optional[Tuple[float, ...]] = None
-    _cached_mask: Optional[np.ndarray] = None
+    _cached_weights: tuple[float, ...] | None = None
+    _cached_mask: np.ndarray | None = None
 
-    def _get_cached_mask(occurrence_values: np.ndarray, weights: np.ndarray) -> np.ndarray:
+    def _get_cached_mask(
+        occurrence_values: np.ndarray, weights: np.ndarray
+    ) -> np.ndarray:
         """Get cached mask or recalculate if weights changed."""
         nonlocal _cached_weights, _cached_mask
 
         weights_tuple = tuple(weights)
         if _cached_weights != weights_tuple:
             # Recalculate mask using helper function
-            _cached_mask = calculate_percentile_mask(occurrence_values, lower_percentile, upper_percentile)
+            _cached_mask = calculate_percentile_mask(
+                occurrence_values, lower_percentile, upper_percentile
+            )
             _cached_weights = weights_tuple
 
         return _cached_mask  # type: ignore
@@ -553,7 +561,11 @@ def create_freqsev_spreadvar(
 
         # Create max values as FreqSevSims for proper comparison
         max_values_array = occurrence_values[combined.sim_index]
-        max_values_freqsev = FreqSevSims(sim_index=combined.sim_index, values=max_values_array, n_sims=combined.n_sims)
+        max_values_freqsev = FreqSevSims(
+            sim_index=combined.sim_index,
+            values=max_values_array,
+            n_sims=combined.n_sims,
+        )
 
         # Calculate gradient for each item
         gradient = np.zeros(n_items)
@@ -579,8 +591,8 @@ def create_freqsev_spreadvar(
 def create_ratio_calculator(
     metric: RatioMetric,
     variable: ProteusVariable,
-    item_ids: List[str],
-) -> Tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
+    item_ids: list[str],
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
     """Create calculator for ratio metric using quotient rule.
 
     Computes numerator / denominator where both metrics evaluate on the same variable.
@@ -594,8 +606,12 @@ def create_ratio_calculator(
     Returns:
         Tuple of (value_function, gradient_function)
     """
-    val_func_num, grad_func_num = create_metric_calculator(metric.numerator, variable, item_ids)
-    val_func_den, grad_func_den = create_metric_calculator(metric.denominator, variable, item_ids)
+    val_func_num, grad_func_num = create_metric_calculator(
+        metric.numerator, variable, item_ids
+    )
+    val_func_den, grad_func_den = create_metric_calculator(
+        metric.denominator, variable, item_ids
+    )
 
     def value_function(weights: np.ndarray) -> float:
         u = val_func_num(weights)
@@ -615,8 +631,8 @@ def create_ratio_calculator(
 def create_product_calculator(
     metric: ProductMetric,
     variable: ProteusVariable,
-    item_ids: List[str],
-) -> Tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
+    item_ids: list[str],
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
     """Create calculator for product metric using product rule.
 
     Computes factor1 × factor2 where both metrics evaluate on the same variable.
@@ -651,8 +667,8 @@ def create_product_calculator(
 def create_sum_calculator(
     metric: SumMetric,
     variable: ProteusVariable,
-    item_ids: List[str],
-) -> Tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
+    item_ids: list[str],
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
     """Create calculator for sum metric.
 
     Computes metric1 + metric2 where both metrics evaluate on the same variable.
@@ -683,8 +699,8 @@ def create_sum_calculator(
 def create_difference_calculator(
     metric: DifferenceMetric,
     variable: ProteusVariable,
-    item_ids: List[str],
-) -> Tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
+    item_ids: list[str],
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray]]:
     """Create calculator for difference metric.
 
     Computes metric1 - metric2 where both metrics evaluate on the same variable.
@@ -720,16 +736,23 @@ def create_difference_calculator(
 
 
 def create_metric_calculator(
-    metric: Union[MeanMetric, StdMetric, SpreadVarMetric, RatioMetric, ProductMetric, SumMetric, DifferenceMetric],
+    metric: MeanMetric
+    | StdMetric
+    | SpreadVarMetric
+    | RatioMetric
+    | ProductMetric
+    | SumMetric
+    | DifferenceMetric,
     pal_variable: ProteusVariable,
-    item_ids: List[str],
-) -> Tuple[Callable[[np.ndarray], float], Optional[Callable[[np.ndarray], np.ndarray]]]:
-    """
-    Factory function to choose the appropriate calculator based on metric type and data type.
+    item_ids: list[str],
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray] | None]:
+    """Factory function to choose the appropriate calculator.
 
+    Chooses calculator based on metric type and data type.
     This is the main entry point that handles:
     - 3 base metric types: MeanMetric, StdMetric, SpreadVarMetric
-    - 4 composite metric types: RatioMetric, ProductMetric, SumMetric, DifferenceMetric
+    - 4 composite metric types: RatioMetric, ProductMetric,
+      SumMetric, DifferenceMetric
     - 2 data types: StochasticScalar, FreqSevSims
 
     Composite metrics recursively call this function for their sub-metrics.
@@ -745,7 +768,6 @@ def create_metric_calculator(
     Raises:
         ValueError: If metric type is unsupported or data types are mixed
     """
-
     # Handle composite metrics first (they recursively call this function)
     if isinstance(metric, RatioMetric):
         return create_ratio_calculator(metric, pal_variable, item_ids)
@@ -765,7 +787,9 @@ def create_metric_calculator(
     if isinstance(metric, MeanMetric):
         if is_freqsev:
             # Extract FreqSevSims items in correct order
-            freqsev_items: List[FreqSevSims] = [pal_variable.values[item_id] for item_id in item_ids]  # type: ignore
+            freqsev_items: list[FreqSevSims] = [
+                pal_variable.values[item_id] for item_id in item_ids
+            ]  # type: ignore
             return create_freqsev_mean(freqsev_items, item_ids)
         else:
             return create_scalar_mean(pal_variable, item_ids)
@@ -773,7 +797,9 @@ def create_metric_calculator(
     elif isinstance(metric, StdMetric):
         if is_freqsev:
             # Extract FreqSevSims items in correct order
-            freqsev_items: List[FreqSevSims] = [pal_variable.values[item_id] for item_id in item_ids]  # type: ignore
+            freqsev_items: list[FreqSevSims] = [
+                pal_variable.values[item_id] for item_id in item_ids
+            ]  # type: ignore
             return create_freqsev_std(freqsev_items, item_ids)
         else:
             return create_scalar_std(pal_variable, item_ids)
@@ -781,12 +807,21 @@ def create_metric_calculator(
     elif isinstance(metric, SpreadVarMetric):
         if is_freqsev:
             # Extract FreqSevSims items in correct order
-            freqsev_items: List[FreqSevSims] = [pal_variable.values[item_id] for item_id in item_ids]  # type: ignore
-            return create_freqsev_spreadvar(freqsev_items, item_ids, metric.lower_percentile, metric.upper_percentile)
+            freqsev_items: list[FreqSevSims] = [
+                pal_variable.values[item_id] for item_id in item_ids
+            ]  # type: ignore
+            return create_freqsev_spreadvar(
+                freqsev_items,
+                item_ids,
+                metric.lower_percentile,
+                metric.upper_percentile,
+            )
 
         else:
             # Use scalar SpreadVar calculation (mean of values in percentile range)
-            return create_scalar_spreadvar(pal_variable, item_ids, metric.lower_percentile, metric.upper_percentile)
+            return create_scalar_spreadvar(
+                pal_variable, item_ids, metric.lower_percentile, metric.upper_percentile
+            )
 
     else:
         raise ValueError(f"Unsupported metric type: {type(metric).__name__}")
@@ -799,26 +834,26 @@ def create_metric_calculator(
 
 def objective_wrapper(
     value_func: Callable[[np.ndarray], float],
-    gradient_func: Optional[Callable[[np.ndarray], np.ndarray]],
+    gradient_func: Callable[[np.ndarray], np.ndarray] | None,
     direction: str,
-) -> Tuple[Callable[[np.ndarray], float], Optional[Callable[[np.ndarray], np.ndarray]]]:
-    """
-    Wrap metric calculator for scipy objective function.
+) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray] | None]:
+    """Wrap metric calculator for scipy objective function.
 
     Args:
         value_func: Portfolio metric calculator
-        gradient_func: Portfolio metric gradient calculator (None for gradient-free optimization)
+        gradient_func: Portfolio metric gradient calculator
+        (None for gradient-free optimization)
         direction: "maximize" or "minimize"
 
     Returns:
-        Tuple of (scipy_objective, scipy_gradient) where scipy minimizes
-        scipy_gradient is None if gradient_func is None (gradient-free optimization)
+        Tuple of (scipy_objective, scipy_gradient) where scipy
+        minimizes. scipy_gradient is None if gradient_func is None
+        (gradient-free optimization)
 
     Note:
         Since scipy.optimize.minimize() minimizes functions, we negate
         the objective and gradient for maximization problems.
     """
-
     if direction == "maximize":
 
         def scipy_objective(weights: np.ndarray) -> float:
@@ -845,19 +880,20 @@ def objective_wrapper(
         else:
             scipy_gradient = None  # type: ignore
     else:
-        raise ValueError(f"Invalid direction: {direction}. Must be 'maximize' or 'minimize'.")
+        raise ValueError(
+            f"Invalid direction: {direction}. Must be 'maximize' or 'minimize'."
+        )
 
     return scipy_objective, scipy_gradient
 
 
 def constraint_wrapper(
     value_func: Callable[[np.ndarray], float],
-    gradient_func: Optional[Callable[[np.ndarray], np.ndarray]],
+    gradient_func: Callable[[np.ndarray], np.ndarray] | None,
     threshold: float,
     direction: str,
-) -> Dict[str, Any]:
-    """
-    Wrap metric calculator for scipy constraint.
+) -> dict[str, Any]:
+    """Wrap metric calculator for scipy constraint.
 
     Args:
         value_func: Portfolio metric calculator (same as used for objective!)
@@ -873,7 +909,6 @@ def constraint_wrapper(
         - "cap": constraint ≤ threshold → threshold - constraint ≥ 0
         - "floor": constraint ≥ threshold → constraint - threshold ≥ 0
     """
-
     if direction == "cap":
         # constraint ≤ threshold → threshold - constraint ≥ 0
         def constraint_func(weights: np.ndarray) -> float:
@@ -900,7 +935,10 @@ def constraint_wrapper(
         raise ValueError(f"Invalid direction: {direction}. Must be 'cap' or 'floor'.")
 
     # Build scipy constraint dictionary
-    constraint_dict: Dict[str, Any] = {"type": "ineq", "fun": constraint_func}  # Inequality constraint (g(x) ≥ 0)
+    constraint_dict: dict[str, Any] = {
+        "type": "ineq",
+        "fun": constraint_func,
+    }  # Inequality constraint (g(x) ≥ 0)
 
     # Add gradient if available
     if gradient_func is not None:

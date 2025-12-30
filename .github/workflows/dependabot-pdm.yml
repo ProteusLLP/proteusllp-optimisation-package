@@ -14,29 +14,23 @@ jobs:
     if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     
-    permissions:
-      contents: write
-      pull-requests: write
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
+          # Use the Dependabot token to push changes
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-          ref: ${{ github.head_ref }}
       
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      
-      - name: Install PDM
-        run: pip install pdm
-      
+      - name: Build CI Docker image
+        run: docker build --target ci -t proteusllp-optimisation-ci .
+        
       - name: Update PDM lock file
-        run: pdm lock --update-reuse
-      
+        run: |
+          # Run pdm sync in container and copy updated lock file out
+          docker run --name temp-container proteusllp-optimisation-ci pdm sync --no-editable
+          docker cp temp-container:/app/pdm.lock ./pdm.lock
+          docker rm temp-container
+            
       - name: Commit updated lock file
         run: |
           git config --local user.email "action@github.com"
@@ -45,6 +39,5 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: update pdm.lock after dependency changes"
+            git commit -m "Update pdm.lock after dependency changes"
             git push
-          fi

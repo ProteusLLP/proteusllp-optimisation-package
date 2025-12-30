@@ -23,7 +23,10 @@ classifiers = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "proteusllp-actuarial-library>=0.2.8",
+    # === TEMPORARY: Using local wheel until PAL 0.2.8 is on PyPI ===
+    "proteusllp-actuarial-library @ file:///${PROJECT_ROOT}/proteusllp_actuarial_library-0.2.8.dev10+g27c24bb-py3-none-any.whl",
+    # When PAL 0.2.8 is published, replace the line above with:
+    # "proteusllp-actuarial-library>=0.2.8",
     "numpy>=2.2",
     "scipy>=1.15",
     "pydantic>=2.0",
@@ -77,12 +80,19 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "D103"] # Allow assert and skip test function docstrings
 "examples/*" = ["D"]       # Skip docstrings in examples
+"optimizer/__init__.py" = ["F403"] # Allow star imports in package init
 
-[tool.mypy]
-python_version = "3.13"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
+[tool.bandit]
+exclude_dirs = ["tests", "__pypackages__"]  # Tests contain patterns that trigger false positives
+skips = ["B101"]  # Skip assert_used test - asserts are normal in tests
+
+[tool.vulture]
+paths = ["optimizer"]
+min_confidence = 80
+exclude = ["__pypackages__/"]
+
+[tool.pdm.python]
+use_venv = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -90,3 +100,15 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --cov=optimizer --cov-report=term-missing"
+
+[dependency-groups]
+test = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+]
+dev = [
+    "ruff>=0.14.10",
+    "bandit>=1.7.0",
+    "vulture>=2.11",
+    "pyright>=1.1.350",
+]

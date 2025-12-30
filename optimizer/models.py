@@ -1,5 +1,4 @@
-"""
-Pydantic models for the generic optimization API.
+"""Pydantic models for the generic optimization API.
 
 This module defines the core data models using Pydantic for validation,
 serialization, and type safety. These models replace the dataclass-based
@@ -13,7 +12,7 @@ Key Features:
 - Self-documenting models with field descriptions
 """
 
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 
 import numpy as np
 from pal import FreqSevSims, StochasticScalar  # type: ignore
@@ -36,6 +35,8 @@ class MeanMetric(BaseModel):
     type: str = Field(default="mean", description="Metric type")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
@@ -45,6 +46,8 @@ class StdMetric(BaseModel):
     type: str = Field(default="std", description="Metric type")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
@@ -53,11 +56,14 @@ class SpreadVarMetric(BaseModel):
 
     type: str = Field(default="spread_var", description="Metric type")
     lower_percentile: float = Field(default=0.0, description="Lower percentile (0-100)")
-    upper_percentile: float = Field(default=100.0, description="Upper percentile (0-100)")
+    upper_percentile: float = Field(
+        default=100.0, description="Upper percentile (0-100)"
+    )
 
     @field_validator("lower_percentile", "upper_percentile")
     @classmethod
     def validate_percentiles(cls, v: float) -> float:
+        """Validate that percentiles are in [0, 100] range."""
         if not (0 <= v <= 100):
             raise ValueError(f"Percentiles must be between 0-100, got {v}")
         return v
@@ -65,25 +71,35 @@ class SpreadVarMetric(BaseModel):
     @field_validator("upper_percentile")
     @classmethod
     def validate_range(cls, v: float, info: Any) -> float:
+        """Validate that upper_percentile > lower_percentile."""
         # Only validate range if lower_percentile is available and valid
         if "lower_percentile" in info.data:
             lower = info.data["lower_percentile"]
             if v <= lower:
-                raise ValueError(f"Upper percentile ({v}) must be greater than lower ({lower})")
+                raise ValueError(
+                    f"Upper percentile ({v}) must be greater than lower ({lower})"
+                )
         return v
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
 class RatioMetric(BaseModel):
-    """Ratio of two metrics on the same variable (e.g., mean/std for Sharpe-like ratio)."""
+    """Ratio of two metrics on the same variable.
+
+    Example: mean/std for Sharpe-like ratio.
+    """
 
     type: str = Field(default="ratio", description="Metric type")
     numerator: "Metric" = Field(description="Numerator metric")
     denominator: "Metric" = Field(description="Denominator metric")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
@@ -95,6 +111,8 @@ class ProductMetric(BaseModel):
     factor2: "Metric" = Field(description="Second factor metric")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
@@ -106,30 +124,37 @@ class SumMetric(BaseModel):
     metric2: "Metric" = Field(description="Second metric to sum")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
 class DifferenceMetric(BaseModel):
-    """Difference of two metrics on the same variable (e.g., spreadvar - mean for deviation)."""
+    """Difference of two metrics on the same variable.
+
+    Example: spreadvar - mean for deviation.
+    """
 
     type: str = Field(default="difference", description="Metric type")
     metric1: "Metric" = Field(description="Metric to subtract from")
     metric2: "Metric" = Field(description="Metric to subtract")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
 # Union type for all metrics (including composite metrics)
-Metric = Union[
-    MeanMetric,
-    StdMetric,
-    SpreadVarMetric,
-    RatioMetric,
-    ProductMetric,
-    SumMetric,
-    DifferenceMetric,
-]
+Metric = (
+    MeanMetric
+    | StdMetric
+    | SpreadVarMetric
+    | RatioMetric
+    | ProductMetric
+    | SumMetric
+    | DifferenceMetric
+)
 
 
 # ============================================================================
@@ -144,13 +169,17 @@ class BoundsSpec(BaseModel):
     upper: float = Field(default=np.inf, description="Upper bound")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
     @model_validator(mode="after")
     def validate_bounds_order(self):
         """Validate lower <= upper."""
         if self.lower > self.upper:
-            raise ValueError(f"Lower bound ({self.lower}) must be <= upper bound ({self.upper})")
+            raise ValueError(
+                f"Lower bound ({self.lower}) must be <= upper bound ({self.upper})"
+            )
         return self
 
 
@@ -160,21 +189,27 @@ class BoundsSpec(BaseModel):
 
 
 class ObjectiveSpec(BaseModel):
-    """
-    Optimization objectives using PAL ProteusVariable.
+    """Optimization objectives using PAL ProteusVariable.
 
-    Maintains item-level structure with ProteusVariable containing StochasticScalar data.
-    Automatically converts other PAL data types to StochasticScalar if needed.
+    Maintains item-level structure with ProteusVariable containing
+    StochasticScalar data. Automatically converts other PAL data
+    types to StochasticScalar if needed.
     """
 
     objective_value: ProteusVariable = Field(
-        ..., description="ProteusVariable with StochasticScalar data for each item (auto-converted if needed)"
+        ...,
+        description=(
+            "ProteusVariable with StochasticScalar data for each "
+            "item (auto-converted if needed)"
+        ),
     )
 
     direction: str = Field(..., description="Optimization direction")
     metric: Metric = Field(..., description="Metric specification")
 
     class Config:
+        """Pydantic configuration."""
+
         arbitrary_types_allowed = True  # For PAL objects
         validate_assignment = True
 
@@ -200,13 +235,17 @@ class ObjectiveSpec(BaseModel):
                     conversion_needed = True
                     converted_values[item_id] = item_data.sum()  # type: ignore
                 else:
-                    # Unknown type - raise error instead of attempting conversion
+                    # Unknown type - raise error instead of conversion
+                    # type: ignore
+                    type_name = type(item_data).__name__
                     raise ValueError(
-                        f"Unknown data type for item '{item_id}': {type(item_data).__name__}. "  # type: ignore
-                        f"Expected StochasticScalar, FreqSevSims, or ProteusVariable."
+                        f"Unknown data type for item '{item_id}': "
+                        f"{type_name}. Expected StochasticScalar, "
+                        f"FreqSevSims, or ProteusVariable."
                     )
 
-            # Create new ProteusVariable with converted data if conversions occurred
+            # Create new ProteusVariable with converted data
+            # if conversions occurred
             if conversion_needed:
                 return ProteusVariable(v.dim_name, converted_values)  # type: ignore
 
@@ -224,23 +263,31 @@ class ObjectiveSpec(BaseModel):
 
 
 class SimpleConstraint(BaseModel):
-    """
-    Simple constraints using PAL ProteusVariable.
+    """Simple constraints using PAL ProteusVariable.
 
-    Maintains item-level structure with ProteusVariable containing StochasticScalar data.
-    Automatically converts other PAL data types to StochasticScalar if needed.
+    Maintains item-level structure with ProteusVariable containing
+    StochasticScalar data. Automatically converts other PAL data
+    types to StochasticScalar if needed.
     """
 
     constraint_value: ProteusVariable = Field(
-        ..., description="ProteusVariable with StochasticScalar data for each item (auto-converted if needed)"
+        ...,
+        description=(
+            "ProteusVariable with StochasticScalar data for each "
+            "item (auto-converted if needed)"
+        ),
     )
 
     threshold: float = Field(..., description="Constraint threshold value")
     direction: str = Field(..., description="Constraint direction")
     metric: Metric = Field(..., description="Metric specification")
-    name: Optional[str] = Field(None, description="Optional human-readable identifier for the constraint")
+    name: str | None = Field(
+        None, description="Optional human-readable identifier for the constraint"
+    )
 
     class Config:
+        """Pydantic configuration."""
+
         arbitrary_types_allowed = True
         validate_assignment = True
 
@@ -266,13 +313,17 @@ class SimpleConstraint(BaseModel):
                     conversion_needed = True
                     converted_values[item_id] = item_data.sum()  # type: ignore
                 else:
-                    # Unknown type - raise error instead of attempting conversion
+                    # Unknown type - raise error instead of conversion
+                    # type: ignore
+                    type_name = type(item_data).__name__
                     raise ValueError(
-                        f"Unknown data type for item '{item_id}': {type(item_data).__name__}. "  # type: ignore
-                        f"Expected StochasticScalar, FreqSevSims, or ProteusVariable."
+                        f"Unknown data type for item '{item_id}': "
+                        f"{type_name}. Expected StochasticScalar, "
+                        f"FreqSevSims, or ProteusVariable."
                     )
 
-            # Create new ProteusVariable with converted data if conversions occurred
+            # Create new ProteusVariable with converted data
+            # if conversions occurred
             if conversion_needed:
                 return ProteusVariable(v.dim_name, converted_values)  # type: ignore
 
@@ -285,7 +336,9 @@ class SimpleConstraint(BaseModel):
     def validate_direction(cls, v: str) -> str:  # type: ignore
         """Validate constraint direction."""
         if v not in VALID_CONSTRAINT_DIRECTIONS:
-            raise ValueError(f"Direction must be one of {VALID_CONSTRAINT_DIRECTIONS}, got '{v}'")
+            raise ValueError(
+                f"Direction must be one of {VALID_CONSTRAINT_DIRECTIONS}, got '{v}'"
+            )
         return v  # type: ignore
 
     @field_validator("threshold")
@@ -298,8 +351,7 @@ class SimpleConstraint(BaseModel):
 
 
 class FreqSevConstraint(BaseModel):
-    """
-    OEP (Occurrence Exceedance Probability) constraints for frequency-severity data.
+    """OEP (Occurrence Exceedance Probability) constraints for frequency-severity data.
 
     Operates on occurrence - the maximum event loss per simulation - rather than
     aggregate losses (AEP). This preserves the frequency-severity structure and enables
@@ -311,15 +363,22 @@ class FreqSevConstraint(BaseModel):
     """
 
     constraint_value: ProteusVariable = Field(
-        ..., description="ProteusVariable containing FreqSevSims data for OEP (occurrence) analysis"
+        ...,
+        description=(
+            "ProteusVariable containing FreqSevSims data for OEP (occurrence) analysis"
+        ),
     )
 
     threshold: float = Field(..., description="Constraint threshold value")
     direction: str = Field(..., description="Constraint direction")
     metric: Metric = Field(..., description="Metric specification")
-    name: Optional[str] = Field(None, description="Optional human-readable identifier for the constraint")
+    name: str | None = Field(
+        None, description="Optional human-readable identifier for the constraint"
+    )
 
     class Config:
+        """Pydantic configuration."""
+
         arbitrary_types_allowed = True
         validate_assignment = True
 
@@ -331,8 +390,9 @@ class FreqSevConstraint(BaseModel):
         for item_id, item_data in v.values.items():  # type: ignore
             if not isinstance(item_data, FreqSevSims):
                 raise ValueError(
-                    f"FreqSevConstraint requires FreqSevSims data for item '{item_id}', "
-                    f"got {type(item_data).__name__}. "  # type: ignore
+                    f"FreqSevConstraint requires FreqSevSims data "
+                    f"for item '{item_id}', got "
+                    f"{type(item_data).__name__}. "  # type: ignore
                     f"Use SimpleConstraint for other data types."
                 )
 
@@ -343,39 +403,60 @@ class FreqSevConstraint(BaseModel):
     def validate_direction(cls, v: str) -> str:  # type: ignore
         """Validate constraint direction."""
         if v not in VALID_CONSTRAINT_DIRECTIONS:
-            raise ValueError(f"Direction must be one of {VALID_CONSTRAINT_DIRECTIONS}, got '{v}'")
+            raise ValueError(
+                f"Direction must be one of {VALID_CONSTRAINT_DIRECTIONS}, got '{v}'"
+            )
         return v  # type: ignore
 
 
 class OptimizationInput(BaseModel):
-    """
-    Complete specification of an optimization problem.
+    """Complete specification of an optimization problem.
 
     This model brings together all the pieces needed for optimization:
     objectives, constraints, bounds, and current state.
     """
 
-    item_ids: List[str] = Field(..., min_length=1, description="Identifiers for optimization items")
-    current_shares: Optional[Dict[str, float]] = Field(None, description="Current allocation per item")
-    objective: ObjectiveSpec = Field(..., description="Optimization objective specification")
-    simple_constraints: List[SimpleConstraint] = Field(default=[], description="Simple portfolio constraints")
-    freqsev_constraints: List[FreqSevConstraint] = Field(default=[], description="OEP-based constraints (occurrence)")
-    share_bounds: Optional[Dict[str, BoundsSpec]] = Field(None, description="Bounds per item using BoundsSpec")
-    config: Optional[Dict[str, Any]] = Field(None, description="Optimization config (max_iterations, tolerances, etc.)")
-    is_preprocessed: bool = Field(default=False, description="Whether preprocessing has been completed")
+    item_ids: list[str] = Field(
+        ..., min_length=1, description="Identifiers for optimization items"
+    )
+    current_shares: dict[str, float] | None = Field(
+        None, description="Current allocation per item"
+    )
+    objective: ObjectiveSpec = Field(
+        ..., description="Optimization objective specification"
+    )
+    simple_constraints: list[SimpleConstraint] = Field(
+        default=[], description="Simple portfolio constraints"
+    )
+    freqsev_constraints: list[FreqSevConstraint] = Field(
+        default=[], description="OEP-based constraints (occurrence)"
+    )
+    share_bounds: dict[str, BoundsSpec] | None = Field(
+        None, description="Bounds per item using BoundsSpec"
+    )
+    config: dict[str, Any] | None = Field(
+        None, description="Optimization config (max_iterations, tolerances, etc.)"
+    )
+    is_preprocessed: bool = Field(
+        default=False, description="Whether preprocessing has been completed"
+    )
 
     # Private attributes for autoscaling (not part of serialization)
-    _share_scales: Optional[Dict[str, float]] = PrivateAttr(default=None)
-    _obj_scale: Optional[float] = PrivateAttr(default=None)
-    _constraint_scales: Optional[List[float]] = PrivateAttr(default=None)
+    _share_scales: dict[str, float] | None = PrivateAttr(default=None)
+    _obj_scale: float | None = PrivateAttr(default=None)
+    _constraint_scales: list[float] | None = PrivateAttr(default=None)
 
     class Config:
+        """Pydantic configuration."""
+
         arbitrary_types_allowed = True
         validate_assignment = True
 
     @field_validator("current_shares")
     @classmethod
-    def validate_current_shares(cls, v: Optional[Dict[str, float]]) -> Optional[Dict[str, float]]:
+    def validate_current_shares(
+        cls, v: dict[str, float] | None
+    ) -> dict[str, float] | None:
         """Validate current shares values are finite."""
         if v is None:
             return v
@@ -385,7 +466,7 @@ class OptimizationInput(BaseModel):
 
     @field_validator("item_ids")
     @classmethod
-    def validate_item_ids(cls, v: List[str]) -> List[str]:
+    def validate_item_ids(cls, v: list[str]) -> list[str]:
         """Validate item IDs are unique and non-empty."""
         if len(set(v)) != len(v):
             duplicates = [item for item in set(v) if v.count(item) > 1]
@@ -399,8 +480,7 @@ class OptimizationInput(BaseModel):
     # ========================================================================
 
     def preprocess(self) -> "OptimizationInput":
-        """
-        Execute the complete 3-step preprocessing pipeline.
+        """Execute the complete 3-step preprocessing pipeline.
 
         Steps:
         1. Validate simulation consistency across all PAL variables
@@ -409,10 +489,12 @@ class OptimizationInput(BaseModel):
         4. Finalize preprocessing state
 
         Returns:
-            New OptimizationInput with processed objective, constraints, bounds, and shares
+            New OptimizationInput with processed objective, constraints,
+            bounds, and shares
 
         Raises:
-            ValueError: If preprocessing fails at any step with detailed error message
+            ValueError: If preprocessing fails at any step with
+            detailed error message
         """
         try:
             # Step 1: Check Simulation Consistency
@@ -452,42 +534,66 @@ class OptimizationInput(BaseModel):
         """Step 1: Validate global simulation consistency across all PAL variables."""
         # Validate FreqSevSims integrity within each ProteusVariable first
         for i, constraint in enumerate(self.freqsev_constraints):
-            is_valid, error_msg, _ = constraint.constraint_value.validate_freqsev_consistency()
+            is_valid, error_msg, _ = (
+                constraint.constraint_value.validate_freqsev_consistency()
+            )
             if not is_valid:
-                raise ValueError(f"FreqSevSims validation failed in freqsev_constraint[{i}]: {error_msg}")
+                raise ValueError(
+                    f"FreqSevSims validation failed in "
+                    f"freqsev_constraint[{i}]: {error_msg}"
+                )
 
-        # TODO: If PAL ProteusVariable.n_sims was correctly implemented,
-        # this could be simplified to just:
+        # TODO: If PAL ProteusVariable.n_sims was correctly
+        # implemented, this could be simplified to just:
         #
         # all_pvs = ([self.objective.objective_value] +
-        #           [c.constraint_value for c in self.simple_constraints] +
-        #           [c.constraint_value for c in self.freqsev_constraints])
-        # effective_n_sims = [pv.n_sims for pv in all_pvs for _ in pv.values]
+        #   [c.constraint_value for c in self.simple_constraints] +
+        #   [c.constraint_value for c in self.freqsev_constraints])
+        # effective_n_sims = [pv.n_sims for pv in all_pvs
+        #   for _ in pv.values]
         # non_one_sims = {n for n in effective_n_sims if n != 1}
         # if len(non_one_sims) > 1:
-        #     raise ValueError(f"Inconsistent simulation counts: {sorted(set(effective_n_sims))}")
+        #   raise ValueError(
+        #     f"Inconsistent simulation counts: "
+        #     f"{sorted(set(effective_n_sims))}")
 
-        # Workaround: Manually extract effective simulation counts since PAL's n_sims is unreliable
-        def get_effective_n_sims(pv: ProteusVariable, expected_type: str) -> List[int]:
+        # Workaround: Manually extract effective simulation counts
+        # since PAL's n_sims is unreliable
+        def get_effective_n_sims(pv: ProteusVariable, expected_type: str) -> list[int]:
             """Extract all simulation counts from a ProteusVariable."""
             return [
-                len(pv[item_id].values) if expected_type == "scalar" else pv[item_id].n_sims  # type: ignore
+                len(pv[item_id].values)
+                if expected_type == "scalar"
+                else pv[item_id].n_sims  # type: ignore
                 for item_id in pv.values.keys()  # type: ignore
             ]
 
-        effective_n_sims: List[int] = []
-        effective_n_sims.extend(get_effective_n_sims(self.objective.objective_value, "scalar"))
+        effective_n_sims: list[int] = []
         effective_n_sims.extend(
-            [n for c in self.simple_constraints for n in get_effective_n_sims(c.constraint_value, "scalar")]
+            get_effective_n_sims(self.objective.objective_value, "scalar")
         )
         effective_n_sims.extend(
-            [n for c in self.freqsev_constraints for n in get_effective_n_sims(c.constraint_value, "freqsev")]
+            [
+                n
+                for c in self.simple_constraints
+                for n in get_effective_n_sims(c.constraint_value, "scalar")
+            ]
+        )
+        effective_n_sims.extend(
+            [
+                n
+                for c in self.freqsev_constraints
+                for n in get_effective_n_sims(c.constraint_value, "freqsev")
+            ]
         )
 
         # Check number of non-1 simulations and raise error if there is more than 1
         non_one_sims = {n for n in effective_n_sims if n != 1}
         if len(non_one_sims) > 1:
-            raise ValueError(f"Simulation count mismatch across variables: {sorted(set(effective_n_sims))}")
+            raise ValueError(
+                f"Simulation count mismatch across variables: "
+                f"{sorted(set(effective_n_sims))}"
+            )
 
     def _align_objective(self) -> ObjectiveSpec:
         """Step 2A: Align objective items with target item_ids."""
@@ -495,31 +601,39 @@ class OptimizationInput(BaseModel):
         n_sims: int = self.objective.objective_value.n_sims  # type: ignore
         template = StochasticScalar(values=[0.0] * n_sims)
 
-        aligned_objective_value = self._align_proteus_variable_items(self.objective.objective_value, template)
+        aligned_objective_value = self._align_proteus_variable_items(
+            self.objective.objective_value, template
+        )
 
         # Create new objective with aligned items
-        return self.objective.model_copy(update={"objective_value": aligned_objective_value})
+        return self.objective.model_copy(
+            update={"objective_value": aligned_objective_value}
+        )
 
-    def _align_simple_constraints(self) -> List[SimpleConstraint]:
+    def _align_simple_constraints(self) -> list[SimpleConstraint]:
         """Step 2B: Align simple constraint items with target item_ids."""
-        aligned_constraints: List[SimpleConstraint] = []
+        aligned_constraints: list[SimpleConstraint] = []
 
         for constraint in self.simple_constraints:
             # Create zero template with matching n_sims from ProteusVariable
             n_sims: int = constraint.constraint_value.n_sims  # type: ignore
             template: StochasticScalar = StochasticScalar(values=[0.0] * n_sims)
 
-            aligned_constraint = self._align_proteus_variable_items(constraint.constraint_value, template)
+            aligned_constraint = self._align_proteus_variable_items(
+                constraint.constraint_value, template
+            )
 
             # Create new constraint with aligned items
-            new_constraint = constraint.model_copy(update={"constraint_value": aligned_constraint})
+            new_constraint = constraint.model_copy(
+                update={"constraint_value": aligned_constraint}
+            )
             aligned_constraints.append(new_constraint)
 
         return aligned_constraints
 
-    def _align_freqsev_constraints(self) -> List[FreqSevConstraint]:
+    def _align_freqsev_constraints(self) -> list[FreqSevConstraint]:
         """Step 2C: Align FreqSev constraint items with target item_ids."""
-        aligned_constraints: List[FreqSevConstraint] = []
+        aligned_constraints: list[FreqSevConstraint] = []
 
         for constraint in self.freqsev_constraints:
             # Create zero template by multiplying first item by 0
@@ -527,21 +641,27 @@ class OptimizationInput(BaseModel):
             first_item = constraint.constraint_value[first_item_id]
             template: FreqSevSims = first_item * 0  # type: ignore  # Creates zero version with same structure
 
-            aligned_constraint = self._align_proteus_variable_items(constraint.constraint_value, template)
+            aligned_constraint = self._align_proteus_variable_items(
+                constraint.constraint_value, template
+            )
 
             # Create new constraint with aligned items
-            new_constraint = constraint.model_copy(update={"constraint_value": aligned_constraint})
+            new_constraint = constraint.model_copy(
+                update={"constraint_value": aligned_constraint}
+            )
             aligned_constraints.append(new_constraint)
 
         return aligned_constraints
 
     def _align_proteus_variable_items(
-        self, proteus_var: ProteusVariable, template_item: Union[StochasticScalar, FreqSevSims]
+        self,
+        proteus_var: ProteusVariable,
+        template_item: StochasticScalar | FreqSevSims,
     ) -> ProteusVariable:
         """Align ProteusVariable items with target item_ids using provided template."""
         import warnings
 
-        aligned_items: Dict[str, Union[StochasticScalar, FreqSevSims]] = {}
+        aligned_items: dict[str, StochasticScalar | FreqSevSims] = {}
 
         # Check for unused items in the constraint
         constraint_items = set(proteus_var.values.keys())  # type: ignore
@@ -550,8 +670,10 @@ class OptimizationInput(BaseModel):
 
         if unused_items:
             warnings.warn(
-                f"Constraint has items {sorted(unused_items)} that are not in item_ids {sorted(self.item_ids)}. "
-                f"These items will be ignored. Did you mean to include them in item_ids?",
+                f"Constraint has items {sorted(unused_items)} that are "
+                f"not in item_ids {sorted(self.item_ids)}. "
+                f"These items will be ignored. Did you mean to include "
+                f"them in item_ids?",
                 UserWarning,
                 stacklevel=4,
             )
@@ -566,14 +688,14 @@ class OptimizationInput(BaseModel):
 
         return ProteusVariable(proteus_var.dim_name, aligned_items)  # type: ignore
 
-    def _align_bounds_with_items(self) -> Dict[str, BoundsSpec]:
+    def _align_bounds_with_items(self) -> dict[str, BoundsSpec]:
         """Step 2D: Align bounds with final item set."""
         if self.share_bounds is None:
             # No bounds provided - generate default bounds for all items
             return {item_id: BoundsSpec() for item_id in self.item_ids}
 
         # Align existing bounds with target items
-        aligned_bounds: Dict[str, BoundsSpec] = {}
+        aligned_bounds: dict[str, BoundsSpec] = {}
 
         for item_id in self.item_ids:
             if item_id in self.share_bounds:
@@ -585,9 +707,8 @@ class OptimizationInput(BaseModel):
 
         return aligned_bounds
 
-    def _align_shares_with_items(self) -> Dict[str, float]:
-        """
-        Step 2E: Align current shares with final item set and ensure feasibility.
+    def _align_shares_with_items(self) -> dict[str, float]:
+        """Step 2E: Align current shares with final item set and ensure feasibility.
 
         Adjusts shares to be within bounds to ensure starting point is feasible:
         - If share is zero or below lower bound → set slightly above lower bound
@@ -595,11 +716,11 @@ class OptimizationInput(BaseModel):
         """
         if self.current_shares is None:
             # Generate default shares (1.0) for all items
-            return {item_id: 1.0 for item_id in self.item_ids}
+            return dict.fromkeys(self.item_ids, 1.0)
 
         # Align existing shares with target items and enforce bounds
-        aligned_shares: Dict[str, float] = {}
-        EPSILON = 1e-6  # Small offset to ensure strict feasibility
+        aligned_shares: dict[str, float] = {}
+        epsilon = 1e-6  # Small offset to ensure strict feasibility
 
         for item_id in self.item_ids:
             if item_id in self.current_shares:
@@ -611,14 +732,19 @@ class OptimizationInput(BaseModel):
             if self.share_bounds and item_id in self.share_bounds:
                 bounds = self.share_bounds[item_id]
 
-                # Adjust to be within bounds (but only if bounds require positive values)
-                if bounds.lower is not None and bounds.lower > 1e-10 and share <= bounds.lower:
+                # Adjust to be within bounds
+                # (only if bounds require positive values)
+                if (
+                    bounds.lower is not None
+                    and bounds.lower > 1e-10
+                    and share <= bounds.lower
+                ):
                     # Below or at positive lower bound → move slightly above
-                    share = bounds.lower + EPSILON
+                    share = bounds.lower + epsilon
                 elif bounds.upper is not None and share >= bounds.upper:
                     # Above or at upper bound → move slightly below
-                    share = bounds.upper - EPSILON
-                # Note: If lower=0 and share=0, leave it as 0 (don't force to EPSILON)
+                    share = bounds.upper - epsilon
+                # Note: If lower=0 and share=0, leave it as 0 (don't force to epsilon)
 
             aligned_shares[item_id] = share
 
@@ -629,8 +755,7 @@ class OptimizationInput(BaseModel):
     # ========================================================================
 
     def _apply_autoscaling(self, verbose: bool = False) -> "OptimizationInput":
-        """
-        Apply comprehensive autoscaling to normalize the optimization problem.
+        """Apply comprehensive autoscaling to normalize the optimization problem.
 
         Scaling Strategy:
         1. Normalize shares to 1.0 (store scale factors in _share_scales)
@@ -649,10 +774,12 @@ class OptimizationInput(BaseModel):
 
         # Step 1: Calculate share scales (normalize each share to 1.0)
         # Scaling threshold = 1.0:
-        #   - Shares ≤ 1.0: No scaling (scale=1.0, keep original value)
-        #     Rationale: Avoids tiny scale factors (e.g., share=1e-6 → scale=1e-6 → bounds/1e-6 = huge)
+        #   - Shares ≤ 1.0: No scaling (scale=1.0, keep original)
+        #     Rationale: Avoids tiny scale factors
+        #     (e.g., share=1e-6 → scale=1e-6 → bounds/1e-6 = huge)
         #   - Shares > 1.0: Normalize to 1.0 for numerical stability
-        #     Rationale: Brings large premiums (millions) down to O(1) for optimizer
+        #     Rationale: Brings large premiums (millions) down to
+        #     O(1) for optimizer
         share_scales = {}
         scaled_shares = {}
         near_zero_shares = []  # Track shares close to zero for warning
@@ -663,7 +790,8 @@ class OptimizationInput(BaseModel):
                 share_scales[item_id] = 1.0
                 scaled_shares[item_id] = share  # Keep original value
 
-                # Warn about shares very close to zero (may indicate initialization issue)
+                # Warn about shares very close to zero
+                # (may indicate initialization issue)
                 if abs(share) < 1e-6 and abs(share) > 0:
                     near_zero_shares.append((item_id, share))
             else:
@@ -673,12 +801,18 @@ class OptimizationInput(BaseModel):
 
         # Warn if any shares are suspiciously close to zero
         if near_zero_shares and verbose:
-            print(f"\n[Autoscaling] WARNING: {len(near_zero_shares)} shares are very small (< 1e-6):")
+            print(
+                f"\n[Autoscaling] WARNING: {len(near_zero_shares)} "
+                f"shares are very small (< 1e-6):"
+            )
             for item_id, share in near_zero_shares[:5]:  # Show first 5
                 print(f"  - {item_id}: {share:.2e}")
             if len(near_zero_shares) > 5:
                 print(f"  ... and {len(near_zero_shares) - 5} more")
-            print("  These may cause numerical issues. Consider using _align_shares_with_items() first.")
+            print(
+                "  These may cause numerical issues. Consider using "
+                "_align_shares_with_items() first."
+            )
 
         # Step 2: Scale bounds (divide by share scales)
         scaled_bounds = {}
@@ -704,7 +838,11 @@ class OptimizationInput(BaseModel):
                         orig_share = self.current_shares[item_id]
                         scale = share_scales[item_id]
                         print(
-                            f"  ⚠️  {item_id}: orig={orig_share:.4f}, scaled={share:.4f}, bounds=[{bounds.lower:.4f}, {bounds.upper:.4f}]"
+                            f"  ⚠️  {item_id}: "
+                            f"orig={orig_share:.4f}, "
+                            f"scaled={share:.4f}, "
+                            f"bounds=[{bounds.lower:.4f}, "
+                            f"{bounds.upper:.4f}]"
                         )
                         infeasible_count += 1
             if infeasible_count == 0:
@@ -713,43 +851,65 @@ class OptimizationInput(BaseModel):
                 print(f"  ⚠️  {infeasible_count} infeasible starting points!")
 
         # Step 3: Scale ProteusVariables (multiply by share scales to compensate)
-        scaled_objective_value = self._scale_proteus_variable(self.objective.objective_value, share_scales)
-        scaled_objective = self.objective.model_copy(update={"objective_value": scaled_objective_value})
+        scaled_objective_value = self._scale_proteus_variable(
+            self.objective.objective_value, share_scales
+        )
+        scaled_objective = self.objective.model_copy(
+            update={"objective_value": scaled_objective_value}
+        )
 
         scaled_simple_constraints = []
         for constraint in self.simple_constraints:
-            scaled_constraint_value = self._scale_proteus_variable(constraint.constraint_value, share_scales)
+            scaled_constraint_value = self._scale_proteus_variable(
+                constraint.constraint_value, share_scales
+            )
             scaled_simple_constraints.append(
-                constraint.model_copy(update={"constraint_value": scaled_constraint_value})
+                constraint.model_copy(
+                    update={"constraint_value": scaled_constraint_value}
+                )
             )
 
         scaled_freqsev_constraints = []
         for constraint in self.freqsev_constraints:
-            scaled_constraint_value = self._scale_proteus_variable(constraint.constraint_value, share_scales)
+            scaled_constraint_value = self._scale_proteus_variable(
+                constraint.constraint_value, share_scales
+            )
             scaled_freqsev_constraints.append(
-                constraint.model_copy(update={"constraint_value": scaled_constraint_value})
+                constraint.model_copy(
+                    update={"constraint_value": scaled_constraint_value}
+                )
             )
 
         # Step 4: Objective and Constraint Scaling - DISABLED
         #
-        # IMPORTANT: Objective/constraint scaling is currently disabled because composite metrics
-        # like RatioMetric are scale-invariant (scaling the variable doesn't change the ratio).
-        # When we divide ProteusVariable by a scale, both numerator and denominator scale equally,
-        # so the ratio remains unchanged. This causes optimization to work on unscaled values.
+        # IMPORTANT: Objective/constraint scaling is currently
+        # disabled because composite metrics like RatioMetric are
+        # scale-invariant (scaling the variable doesn't change the
+        # ratio). When we divide ProteusVariable by a scale, both
+        # numerator and denominator scale equally, so the ratio
+        # remains unchanged. This causes optimization to work on
+        # unscaled values.
         #
-        # TODO: To properly implement metric-based scaling, add a method/property to Metric class:
-        #   - Metric.determine_scaling_factor(variable, item_ids) -> float
-        #   - Returns how the metric value scales when variable is scaled uniformly
+        # TODO: To properly implement metric-based scaling, add a
+        # method/property to Metric class:
+        #   - Metric.determine_scaling_factor(variable, item_ids)
+        #     -> float
+        #   - Returns how the metric value scales when variable is
+        #     scaled uniformly
         #   - Examples:
         #     * MeanMetric: returns 1.0 (scales linearly)
-        #     * RatioMetric: returns 0.0 (scale-invariant, num/den cancel)
+        #     * RatioMetric: returns 0.0 (scale-invariant,
+        #       num/den cancel)
         #     * ProductMetric: returns 2.0 (scales by scale²)
         #   - Then: effective_scale = base_value ** scaling_factor
         #
-        # For now, we only apply share scaling (Step 1-3) and skip objective/constraint scaling.
+        # For now, we only apply share scaling (Step 1-3) and skip
+        # objective/constraint scaling.
 
         obj_scale = 1.0  # No objective scaling
-        constraint_scales = [1.0] * (len(scaled_simple_constraints) + len(scaled_freqsev_constraints))
+        constraint_scales = [1.0] * (
+            len(scaled_simple_constraints) + len(scaled_freqsev_constraints)
+        )
 
         # Step 5: Use share-scaled values directly (no additional scaling)
         final_objective = scaled_objective
@@ -774,9 +934,10 @@ class OptimizationInput(BaseModel):
 
         return scaled_input
 
-    def _scale_proteus_variable(self, proteus_var: ProteusVariable, scales: Dict[str, float]) -> ProteusVariable:
-        """
-        Scale a ProteusVariable by multiplying each item by its scale factor.
+    def _scale_proteus_variable(
+        self, proteus_var: ProteusVariable, scales: dict[str, float]
+    ) -> ProteusVariable:
+        """Scale a ProteusVariable by multiplying each item by its scale factor.
 
         Uses PAL multiplication pattern: creates a ProteusVariable with constant
         StochasticScalar values containing the scale factors, then multiplies.
@@ -798,7 +959,9 @@ class OptimizationInput(BaseModel):
         elif isinstance(first_item, FreqSevSims):
             n_sims = first_item.n_sims
         else:
-            raise ValueError(f"Unknown item type in ProteusVariable: {type(first_item)}")
+            raise ValueError(
+                f"Unknown item type in ProteusVariable: {type(first_item)}"
+            )
 
         # Create scale ProteusVariable with constant values
         scale_dict = {}
@@ -820,39 +983,59 @@ class OptimizationInput(BaseModel):
 class ConstraintResult(BaseModel):
     """Result for a single constraint evaluation."""
 
-    constraint_type: str = Field(..., description="Type of constraint (simple or freqsev)")
+    constraint_type: str = Field(
+        ..., description="Type of constraint (simple or freqsev)"
+    )
     constraint_index: int = Field(..., description="Index in the constraints list")
-    metric_type: str = Field(..., description="Metric type (mean, std, spread_var, etc.)")
-    name: Optional[str] = Field(None, description="Human-readable constraint name (from constraint definition)")
+    metric_type: str = Field(
+        ..., description="Metric type (mean, std, spread_var, etc.)"
+    )
+    name: str | None = Field(
+        None, description="Human-readable constraint name (from constraint definition)"
+    )
     threshold: float = Field(..., description="Constraint threshold value")
     direction: str = Field(..., description="Constraint direction (cap or floor)")
-    actual_value: float = Field(..., description="Actual portfolio value for this constraint")
-    slack: float = Field(..., description="Constraint slack (positive = satisfied, negative = violated)")
+    actual_value: float = Field(
+        ..., description="Actual portfolio value for this constraint"
+    )
+    slack: float = Field(
+        ..., description="Constraint slack (positive = satisfied, negative = violated)"
+    )
     is_satisfied: bool = Field(..., description="Whether constraint is satisfied")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
 class OptimizationResult(BaseModel):
     """Complete optimization result with constraint evaluations."""
 
-    success: bool = Field(..., description="Whether optimization converged successfully")
-    optimal_shares: Dict[str, float] = Field(..., description="Optimal portfolio weights by item_id")
+    success: bool = Field(
+        ..., description="Whether optimization converged successfully"
+    )
+    optimal_shares: dict[str, float] = Field(
+        ..., description="Optimal portfolio weights by item_id"
+    )
     objective_value: float = Field(..., description="Optimal objective function value")
-    constraint_results: List[ConstraintResult] = Field(
+    constraint_results: list[ConstraintResult] = Field(
         default=[], description="Evaluation of all constraints at optimal solution"
     )
     status: int = Field(..., description="Optimization status code")
     message: str = Field(..., description="Optimization status message")
     n_iterations: int = Field(..., description="Number of optimizer iterations")
-    optimization_time: float = Field(..., description="Total optimization time in seconds")
+    optimization_time: float = Field(
+        ..., description="Total optimization time in seconds"
+    )
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
     @property
-    def violated_constraints(self) -> List[ConstraintResult]:
+    def violated_constraints(self) -> list[ConstraintResult]:
         """Return list of violated constraints."""
         return [c for c in self.constraint_results if not c.is_satisfied]
 
@@ -870,12 +1053,16 @@ class OptimizationResult(BaseModel):
 class ConstraintVariation(BaseModel):
     """Specification for how to vary a single constraint across the frontier."""
 
-    constraint_type: Literal["simple", "freqsev"] = Field(..., description="Type of constraint ('simple' or 'freqsev')")
+    constraint_type: Literal["simple", "freqsev"] = Field(
+        ..., description="Type of constraint ('simple' or 'freqsev')"
+    )
     constraint_name: str = Field(..., description="Name of the constraint to vary")
     min_threshold: float = Field(..., description="Starting threshold value")
     max_threshold: float = Field(..., description="Ending threshold value")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
     @model_validator(mode="after")
@@ -883,7 +1070,8 @@ class ConstraintVariation(BaseModel):
         """Validate min_threshold < max_threshold."""
         if self.min_threshold >= self.max_threshold:
             raise ValueError(
-                f"min_threshold ({self.min_threshold}) must be less than " f"max_threshold ({self.max_threshold})"
+                f"min_threshold ({self.min_threshold}) must be less than "
+                f"max_threshold ({self.max_threshold})"
             )
         return self
 
@@ -891,13 +1079,19 @@ class ConstraintVariation(BaseModel):
 class EfficientFrontierInput(BaseModel):
     """Input specification for efficient frontier generation."""
 
-    base_optimization: OptimizationInput = Field(..., description="Base optimization problem to vary")
-    constraint_variations: List[ConstraintVariation] = Field(
+    base_optimization: OptimizationInput = Field(
+        ..., description="Base optimization problem to vary"
+    )
+    constraint_variations: list[ConstraintVariation] = Field(
         ..., min_length=1, description="Constraints to vary in parallel"
     )
-    n_points: int = Field(default=20, ge=3, le=100, description="Number of frontier points to generate")
+    n_points: int = Field(
+        default=20, ge=3, le=100, description="Number of frontier points to generate"
+    )
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
     @model_validator(mode="after")
@@ -914,22 +1108,32 @@ class EfficientFrontierInput(BaseModel):
             names_in_list = {c.name for c in constraints if c.name}
             if variation.constraint_name not in names_in_list:
                 # Build helpful error message
-                available = ", ".join(sorted(names_in_list)) if names_in_list else "none"
+                available = (
+                    ", ".join(sorted(names_in_list)) if names_in_list else "none"
+                )
                 unnamed_count = len([c for c in constraints if not c.name])
 
                 error_msg = (
-                    f"Constraint '{variation.constraint_name}' not found in "
-                    f"{variation.constraint_type} constraints. "
-                    f"Available named {variation.constraint_type} constraints: {available}."
+                    f"Constraint '{variation.constraint_name}' not "
+                    f"found in {variation.constraint_type} constraints. "
+                    f"Available named {variation.constraint_type} "
+                    f"constraints: {available}."
                 )
                 if unnamed_count > 0:
-                    error_msg += f" ({unnamed_count} unnamed {variation.constraint_type} constraints exist)"
+                    error_msg += (
+                        f" ({unnamed_count} unnamed "
+                        f"{variation.constraint_type} constraints exist)"
+                    )
                 raise ValueError(error_msg)
 
         # Check for duplicate (type, name) pairs in variations
-        variation_keys = [(v.constraint_type, v.constraint_name) for v in self.constraint_variations]
+        variation_keys = [
+            (v.constraint_type, v.constraint_name) for v in self.constraint_variations
+        ]
         if len(variation_keys) != len(set(variation_keys)):
-            duplicates = [key for key in set(variation_keys) if variation_keys.count(key) > 1]
+            duplicates = [
+                key for key in set(variation_keys) if variation_keys.count(key) > 1
+            ]
             raise ValueError(f"Duplicate constraint variations: {duplicates}")
 
         return self
@@ -938,20 +1142,22 @@ class EfficientFrontierInput(BaseModel):
 class EfficientFrontierResult(BaseModel):
     """Result from efficient frontier generation."""
 
-    optimization_results: List[OptimizationResult] = Field(
+    optimization_results: list[OptimizationResult] = Field(
         ..., description="List of optimization results, one per frontier point"
     )
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
     @property
-    def successful_results(self) -> List[OptimizationResult]:
+    def successful_results(self) -> list[OptimizationResult]:
         """Return only successful optimization results."""
         return [r for r in self.optimization_results if r.success]
 
     @property
-    def failed_results(self) -> List[OptimizationResult]:
+    def failed_results(self) -> list[OptimizationResult]:
         """Return only failed optimization results."""
         return [r for r in self.optimization_results if not r.success]
 

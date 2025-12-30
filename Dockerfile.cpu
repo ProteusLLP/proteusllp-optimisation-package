@@ -10,22 +10,26 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     build-essential \
     git \
+    nodejs \
+    npm \
     locales \
     && rm -rf /var/lib/apt/lists/* \
     && sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen \
     && locale-gen
 
-# Install PDM for package management
-RUN pip install --no-cache-dir pdm
+# Install pyright globally for type checking
+RUN npm install -g pyright
+
+# Install uv and PDM for fast package management
+RUN pip install uv pdm
 
 # Set working directory
 WORKDIR /app
 
 # Copy dependency files
-COPY pyproject.toml ./
-COPY requirements.txt ./
+COPY pyproject.toml pdm.lock* ./
 
-# PAL will be installed from PyPI via requirements.txt
+# Dependencies will be installed via PDM
 
 # DEVELOPMENT STAGE ========================================
 FROM base AS dev
@@ -59,8 +63,8 @@ WORKDIR /app
 # Copy source code for CI
 COPY . .
 
-# Install dependencies and package with PDM
-RUN pdm install -dG test
+# Install all dev dependencies (includes test tools + static analysis tools)
+RUN pdm install -dG test -dG dev
 
 # Run tests by default
 CMD ["pytest", "tests/", "-v", "--cov=optimizer", "--cov-report=term-missing"]

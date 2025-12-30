@@ -106,8 +106,17 @@ pdm install
 ### Running Checks
 
 ```bash
+# Run tests
 pytest tests/ -v
+
+# Run static analysis (lint, format, security, deadcode)
+make static-analysis
+
+# Run typecheck separately (has known issues with PAL's dynamic types)
+make typecheck
 ```
+
+**Note on Type Checking**: Pyright type checking is temporarily excluded from CI due to PAL's dynamic typing patterns. PAL adds attributes like `.occurrence`, `.sim_index`, and `.n_sims` at runtime, which pyright cannot fully infer. All tests pass, confirming functional correctness.
 
 ## License
 
