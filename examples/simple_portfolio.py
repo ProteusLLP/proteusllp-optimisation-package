@@ -7,13 +7,13 @@ This example demonstrates:
 - Interpreting results
 """
 
+from pal import StochasticScalar
 from pop import (
     ObjectiveSpec,
     OptimizationInput,
     scipy_optimize,
 )
 from pop.config import MetricType, OptimizationDirection
-from pal import StochasticScalar
 
 
 def main():

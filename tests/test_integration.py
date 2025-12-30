@@ -13,6 +13,8 @@ Tests cover:
 
 import numpy as np
 import pytest
+from pal import FreqSevSims, StochasticScalar
+from pal.variables import ProteusVariable
 from pop import (
     BoundsSpec,
     ConstraintVariation,
@@ -28,8 +30,6 @@ from pop import (
     generate_efficient_frontier,
     optimize,
 )
-from pal import FreqSevSims, StochasticScalar
-from pal.variables import ProteusVariable
 
 
 class TestMixedConstraintTypes:

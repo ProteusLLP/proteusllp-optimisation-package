@@ -6,6 +6,8 @@ variation scenarios.
 
 import numpy as np
 import pytest
+from pal import FreqSevSims, StochasticScalar
+from pal.variables import ProteusVariable
 from pop import (
     BoundsSpec,
     ConstraintVariation,
@@ -18,8 +20,6 @@ from pop import (
     StdMetric,
     generate_efficient_frontier,
 )
-from pal import FreqSevSims, StochasticScalar
-from pal.variables import ProteusVariable
 
 
 class TestBasicEfficientFrontier:

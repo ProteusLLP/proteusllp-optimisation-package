@@ -12,6 +12,8 @@ Tests cover:
 
 import numpy as np
 import pytest
+from pal import StochasticScalar
+from pal.variables import ProteusVariable
 from pop import (
     BoundsSpec,
     DifferenceMetric,
@@ -26,8 +28,6 @@ from pop import (
     optimize,
 )
 from pop.transforms import create_metric_calculator
-from pal import StochasticScalar
-from pal.variables import ProteusVariable
 
 
 class TestRatioMetricCalculations:
