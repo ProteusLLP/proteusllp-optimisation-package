@@ -1,5 +1,4 @@
-"""
-Tests for metric calculation correctness.
+"""Tests for metric calculation correctness.
 
 Validates that Mean, Std, and SpreadVar metrics:
 - Calculate values correctly
@@ -9,11 +8,10 @@ Validates that Mean, Std, and SpreadVar metrics:
 
 import numpy as np
 import pytest
-from pal import StochasticScalar
-from pal.variables import ProteusVariable
-
 from optimizer import MeanMetric, SpreadVarMetric, StdMetric
 from optimizer.transforms import create_metric_calculator
+from pal import StochasticScalar
+from pal.variables import ProteusVariable
 
 
 class TestMeanMetricCalculations:
@@ -209,7 +207,9 @@ class TestSpreadVarMetricCalculations:
         pv = ProteusVariable(
             "item",
             {
-                "item1": StochasticScalar([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]),
+                "item1": StochasticScalar(
+                    [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+                ),
             },
         )
 
@@ -228,7 +228,9 @@ class TestSpreadVarMetricCalculations:
         pv = ProteusVariable(
             "item",
             {
-                "item1": StochasticScalar([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]),
+                "item1": StochasticScalar(
+                    [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+                ),
             },
         )
 
@@ -315,7 +317,9 @@ class TestMetricEdgeCases:
         )
 
         # Mean
-        mean_value_func, grad_func = create_metric_calculator(MeanMetric(), pv, ["item1"])
+        mean_value_func, grad_func = create_metric_calculator(
+            MeanMetric(), pv, ["item1"]
+        )
         mean_value = mean_value_func(np.array([1.0]))
         expected_mean = np.mean([-5.0, -3.0, -1.0, 1.0, 3.0])
         np.testing.assert_allclose(mean_value, expected_mean)
@@ -342,7 +346,9 @@ class TestMetricEdgeCases:
         )
 
         # Mean
-        mean_value_func, grad_func = create_metric_calculator(MeanMetric(), pv, ["item1"])
+        mean_value_func, grad_func = create_metric_calculator(
+            MeanMetric(), pv, ["item1"]
+        )
         mean_value = mean_value_func(np.array([1.0]))
         np.testing.assert_allclose(mean_value, 5.0)
 
@@ -350,7 +356,9 @@ class TestMetricEdgeCases:
         std_value_func, grad_func = create_metric_calculator(StdMetric(), pv, ["item1"])
         std_value = std_value_func(np.array([1.0]))
         # With ddof=1 and n=1, standard deviation is mathematically undefined
-        assert np.isnan(std_value), "Standard deviation with single simulation should be NaN"
+        assert np.isnan(std_value), (
+            "Standard deviation with single simulation should be NaN"
+        )
 
         # SpreadVar
         sv_metric = SpreadVarMetric(lower_percentile=0.0, upper_percentile=100.0)
@@ -371,12 +379,16 @@ class TestMetricEdgeCases:
         shares = np.array([0.0, 0.0])
 
         # Mean should be zero
-        mean_value_func, grad_func = create_metric_calculator(MeanMetric(), pv, ["item1", "item2"])
+        mean_value_func, grad_func = create_metric_calculator(
+            MeanMetric(), pv, ["item1", "item2"]
+        )
         mean_value = mean_value_func(shares)
         np.testing.assert_allclose(mean_value, 0.0)
 
         # Std should be zero (no variation)
-        std_value_func, grad_func = create_metric_calculator(StdMetric(), pv, ["item1", "item2"])
+        std_value_func, grad_func = create_metric_calculator(
+            StdMetric(), pv, ["item1", "item2"]
+        )
         std_value = std_value_func(shares)
         np.testing.assert_allclose(std_value, 0.0, atol=1e-10)
 

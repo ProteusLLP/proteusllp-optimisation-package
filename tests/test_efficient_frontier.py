@@ -1,5 +1,4 @@
-"""
-Tests for efficient frontier generation.
+"""Tests for efficient frontier generation.
 
 Tests the generate_efficient_frontier() function with various constraint
 variation scenarios.
@@ -7,9 +6,6 @@ variation scenarios.
 
 import numpy as np
 import pytest
-from pal import FreqSevSims, StochasticScalar
-from pal.variables import ProteusVariable
-
 from optimizer import (
     BoundsSpec,
     ConstraintVariation,
@@ -22,6 +18,8 @@ from optimizer import (
     StdMetric,
     generate_efficient_frontier,
 )
+from pal import FreqSevSims, StochasticScalar
+from pal.variables import ProteusVariable
 
 
 class TestBasicEfficientFrontier:
@@ -38,13 +36,19 @@ class TestBasicEfficientFrontier:
         returns = ProteusVariable(
             "item",
             {
-                "risky": StochasticScalar([0.08, 0.12, 0.15, 0.10, 0.14]),  # Mean ~0.118, Std ~0.029
-                "safe": StochasticScalar([0.03, 0.04, 0.05, 0.04, 0.04]),  # Mean ~0.04, Std ~0.007
+                "risky": StochasticScalar(
+                    [0.08, 0.12, 0.15, 0.10, 0.14]
+                ),  # Mean ~0.118, Std ~0.029
+                "safe": StochasticScalar(
+                    [0.03, 0.04, 0.05, 0.04, 0.04]
+                ),  # Mean ~0.04, Std ~0.007
             },
         )
 
         # Objective: maximize mean return
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         # Constraint: risk (std) must be below varying threshold
         risk_constraint = SimpleConstraint(
@@ -110,7 +114,7 @@ class TestBasicEfficientFrontier:
             safe_weight = opt_result.optimal_shares["safe"]
 
             print(
-                f"\nPoint {idx}: risky={risky_weight:.4f}, safe={safe_weight:.4f}, sum={risky_weight+safe_weight:.4f}"
+                f"\nPoint {idx}: risky={risky_weight:.4f}, safe={safe_weight:.4f}, sum={risky_weight + safe_weight:.4f}"
             )
 
             risky_weights.append(risky_weight)
@@ -132,29 +136,38 @@ class TestBasicEfficientFrontier:
         # The efficient frontier is created by varying the risk constraint.
 
         # 1. As risk constraint relaxes, allocated amount should increase (more risky asset)
-        safe_weights = [opt_result.optimal_shares["safe"] for opt_result in result.optimization_results]
+        safe_weights = [
+            opt_result.optimal_shares["safe"]
+            for opt_result in result.optimization_results
+        ]
         for i in range(1, len(safe_weights)):
             # Safe weight should increase as we allow more risk (buy more)
-            assert (
-                safe_weights[i] >= safe_weights[i - 1] - 1e-4
-            ), f"Total allocation should increase: {safe_weights[i]} >= {safe_weights[i-1]}"
+            assert safe_weights[i] >= safe_weights[i - 1] - 1e-4, (
+                f"Total allocation should increase: {safe_weights[i]} >= {safe_weights[i - 1]}"
+            )
 
         # 2. With tighter risk constraints, should allocate only to safe asset
-        assert risky_weights[0] < 0.1, "First point (lowest risk) should be all safe asset"
+        assert risky_weights[0] < 0.1, (
+            "First point (lowest risk) should be all safe asset"
+        )
 
         # 3. Returns should increase as we relax risk constraint
         for i in range(1, len(returns_list)):
-            assert (
-                returns_list[i] >= returns_list[i - 1] - 1e-6
-            ), f"Return should increase along frontier: {returns_list[i]} >= {returns_list[i-1]}"
+            assert returns_list[i] >= returns_list[i - 1] - 1e-6, (
+                f"Return should increase along frontier: {returns_list[i]} >= {returns_list[i - 1]}"
+            )
 
         print("\nEfficient Frontier Results:")
         print(f"{'Risk Cap':<12} {'Actual Risk':<12} {'Return':<12} {'Risky %':<10}")
         print("-" * 50)
 
         thresholds = np.linspace(0.008, 0.025, 5)
-        for threshold, risk, ret, weight in zip(thresholds, risks_list, returns_list, risky_weights):
-            print(f"{threshold:>10.4f}   {risk:>10.4f}   {ret:>10.4f}   {weight:>8.1f}%")
+        for threshold, risk, ret, weight in zip(
+            thresholds, risks_list, returns_list, risky_weights
+        ):
+            print(
+                f"{threshold:>10.4f}   {risk:>10.4f}   {ret:>10.4f}   {weight:>8.1f}%"
+            )
 
 
 class TestMultipleConstraintVariations:
@@ -170,7 +183,9 @@ class TestMultipleConstraintVariations:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         # Two constraints that will vary together
         risk_constraint = SimpleConstraint(
@@ -244,8 +259,12 @@ class TestFreqSevEfficientFrontier:
         losses = ProteusVariable(
             "item",
             {
-                "asset1": FreqSevSims(sim_index=sim_index, values=values1, n_sims=n_sims),
-                "asset2": FreqSevSims(sim_index=sim_index, values=values2, n_sims=n_sims),
+                "asset1": FreqSevSims(
+                    sim_index=sim_index, values=values1, n_sims=n_sims
+                ),
+                "asset2": FreqSevSims(
+                    sim_index=sim_index, values=values2, n_sims=n_sims
+                ),
             },
         )
 
@@ -259,7 +278,9 @@ class TestFreqSevEfficientFrontier:
         )
 
         # Maximize returns
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         # Cap on mean losses (will vary)
         loss_cap = FreqSevConstraint(
@@ -312,7 +333,9 @@ class TestEfficientFrontierEdgeCases:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         constraint = SimpleConstraint(
             constraint_value=returns,
@@ -359,7 +382,9 @@ class TestEfficientFrontierEdgeCases:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         # Impossible constraint: require mean > 0.20 when max possible per unit is ~0.08
         # With tight bounds, this becomes impossible
@@ -416,7 +441,9 @@ class TestEfficientFrontierResultProperties:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         constraint = SimpleConstraint(
             constraint_value=returns,

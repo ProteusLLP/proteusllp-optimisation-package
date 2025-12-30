@@ -1,5 +1,4 @@
-"""
-Generic Optimization API using PAL (Proteus Analytics Library).
+"""Generic Optimization API using PAL (Proteus Analytics Library).
 
 This package provides a domain-agnostic optimization framework that can work
 with any PAL variables and metrics, making it suitable for portfolio optimization,

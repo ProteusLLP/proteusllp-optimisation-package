@@ -1,12 +1,11 @@
-"""
-Configuration constants and settings for the generic optimization API.
+"""Configuration constants and settings for the generic optimization API.
 
 This module defines the foundational constants, valid values, and configuration
 options that govern the behavior of the optimization system.
 """
 
 from enum import Enum
-from typing import Any, Dict, Set
+from typing import Any
 
 
 class OptimizationDirection(Enum):
@@ -38,13 +37,15 @@ class OptimizationStatus(Enum):
 MAX_ITERATIONS: int = 1000
 
 # Valid optimization directions
-VALID_DIRECTIONS: Set[str] = {direction.value for direction in OptimizationDirection}
+VALID_DIRECTIONS: set[str] = {direction.value for direction in OptimizationDirection}
 
 # Valid constraint directions
-VALID_CONSTRAINT_DIRECTIONS: Set[str] = {direction.value for direction in ConstraintDirection}
+VALID_CONSTRAINT_DIRECTIONS: set[str] = {
+    direction.value for direction in ConstraintDirection
+}
 
 # Default tolerance values for scipy optimization
-DEFAULT_TOLERANCES: Dict[str, float] = {
+DEFAULT_TOLERANCES: dict[str, float] = {
     "ftol": 1e-8,  # Relative tolerance on function values
 }
 
@@ -55,7 +56,7 @@ VALID_PERCENTILE_RANGE: tuple[float, float] = (0.0, 100.0)
 # Example: metric="spread_var", spread_var_lower=5.0, spread_var_upper=10.0
 
 # Status code descriptions for user feedback
-STATUS_DESCRIPTIONS: Dict[int, str] = {
+STATUS_DESCRIPTIONS: dict[int, str] = {
     OptimizationStatus.SUCCESS.value: "Optimization terminated successfully",
     OptimizationStatus.MAX_ITERATIONS.value: "Maximum number of iterations reached",
     OptimizationStatus.XTOL_REACHED.value: "Tolerance in decision variables reached",
@@ -65,7 +66,7 @@ STATUS_DESCRIPTIONS: Dict[int, str] = {
 }
 
 # Default configuration values
-DEFAULT_CONFIG: Dict[str, Any] = {
+DEFAULT_CONFIG: dict[str, Any] = {
     "max_iterations": MAX_ITERATIONS,
     "tolerances": DEFAULT_TOLERANCES,
     "verbose": False,

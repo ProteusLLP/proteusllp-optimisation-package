@@ -1,5 +1,4 @@
-"""
-Efficient Frontier Generation.
+"""Efficient Frontier Generation.
 
 This module provides functionality to generate efficient frontiers by varying
 constraint thresholds in parallel across multiple optimization runs.
@@ -14,8 +13,7 @@ from .scipy_interface import optimize
 def generate_efficient_frontier(
     frontier_input: EfficientFrontierInput,
 ) -> EfficientFrontierResult:
-    """
-    Generate efficient frontier by varying constraints in parallel.
+    """Generate efficient frontier by varying constraints in parallel.
 
     This function creates a series of optimization problems by varying the thresholds
     of specified constraints in parallel. For each point on the frontier, all varied
@@ -56,7 +54,9 @@ def generate_efficient_frontier(
     # Generate threshold values for each constraint using numpy's linspace
     thresholds_by_constraint = []
     for variation in frontier_input.constraint_variations:
-        thresholds = np.linspace(variation.min_threshold, variation.max_threshold, frontier_input.n_points)
+        thresholds = np.linspace(
+            variation.min_threshold, variation.max_threshold, frontier_input.n_points
+        )
         thresholds_by_constraint.append(thresholds)
 
     # Run optimization for each frontier point
@@ -67,7 +67,9 @@ def generate_efficient_frontier(
         modified_opt = preprocessed_base.model_copy(deep=True)
 
         # Update each varied constraint's threshold
-        for variation, thresholds in zip(frontier_input.constraint_variations, thresholds_by_constraint):
+        for variation, thresholds in zip(
+            frontier_input.constraint_variations, thresholds_by_constraint
+        ):
             new_threshold = thresholds[i]
 
             # Find and update the constraint
@@ -80,7 +82,9 @@ def generate_efficient_frontier(
             for j, constraint in enumerate(constraints):
                 if constraint.name == variation.constraint_name:
                     # Create new constraint with updated threshold
-                    updated_constraint = constraint.model_copy(update={"threshold": new_threshold})
+                    updated_constraint = constraint.model_copy(
+                        update={"threshold": new_threshold}
+                    )
                     constraints[j] = updated_constraint
                     break
 

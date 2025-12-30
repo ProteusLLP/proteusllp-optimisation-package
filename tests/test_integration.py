@@ -1,5 +1,4 @@
-"""
-Integration tests for end-to-end optimization workflows.
+"""Integration tests for end-to-end optimization workflows.
 
 These tests validate realistic combinations of features that users would actually run,
 testing the interaction between components rather than individual features in isolation.
@@ -14,9 +13,6 @@ Tests cover:
 
 import numpy as np
 import pytest
-from pal import FreqSevSims, StochasticScalar
-from pal.variables import ProteusVariable
-
 from optimizer import (
     BoundsSpec,
     ConstraintVariation,
@@ -32,6 +28,8 @@ from optimizer import (
     generate_efficient_frontier,
     optimize,
 )
+from pal import FreqSevSims, StochasticScalar
+from pal.variables import ProteusVariable
 
 
 class TestMixedConstraintTypes:
@@ -63,18 +61,24 @@ class TestMixedConstraintTypes:
                 ),
                 "asset2": FreqSevSims(
                     sim_index=sim_index,
-                    values=np.array([1500.0, 2000.0, 1800.0, 2200.0, 1600.0], dtype=float),
+                    values=np.array(
+                        [1500.0, 2000.0, 1800.0, 2200.0, 1600.0], dtype=float
+                    ),
                     n_sims=n_sims,
                 ),
                 "asset3": FreqSevSims(
                     sim_index=sim_index,
-                    values=np.array([1000.0, 1400.0, 1200.0, 1500.0, 1100.0], dtype=float),
+                    values=np.array(
+                        [1000.0, 1400.0, 1200.0, 1500.0, 1100.0], dtype=float
+                    ),
                     n_sims=n_sims,
                 ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         # Simple constraint: cap on portfolio standard deviation
         simple_constraint = SimpleConstraint(
@@ -117,7 +121,9 @@ class TestMixedConstraintTypes:
         # Check constraints (may not all be satisfied if optimizer didn't converge fully)
         if result.success:
             for constraint_result in result.constraint_results:
-                assert constraint_result.is_satisfied, f"Constraint {constraint_result.name} violated"
+                assert constraint_result.is_satisfied, (
+                    f"Constraint {constraint_result.name} violated"
+                )
 
     def test_multiple_constraints_of_each_type(self):
         """Test optimization with multiple simple AND multiple FreqSev constraints."""
@@ -142,13 +148,17 @@ class TestMixedConstraintTypes:
                 ),
                 "asset2": FreqSevSims(
                     sim_index=sim_index,
-                    values=np.array([1500.0, 2000.0, 1800.0, 2200.0, 1600.0], dtype=float),
+                    values=np.array(
+                        [1500.0, 2000.0, 1800.0, 2200.0, 1600.0], dtype=float
+                    ),
                     n_sims=n_sims,
                 ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         # Two simple constraints
         simple_constraint1 = SimpleConstraint(
@@ -206,7 +216,9 @@ class TestMixedConstraintTypes:
         # Check constraints (may not all be satisfied if optimizer didn't converge)
         if result.success:
             for constraint_result in result.constraint_results:
-                assert constraint_result.is_satisfied, f"Constraint {constraint_result.name} violated"
+                assert constraint_result.is_satisfied, (
+                    f"Constraint {constraint_result.name} violated"
+                )
 
 
 class TestCompositeMetricsInConstraints:
@@ -224,10 +236,14 @@ class TestCompositeMetricsInConstraints:
         )
 
         # Maximize mean return
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         # Constraint: Sharpe ratio must be >= 5.0
-        sharpe_metric = RatioMetric(numerator=MeanMetric(), denominator=StdMetric(), name="sharpe_ratio")
+        sharpe_metric = RatioMetric(
+            numerator=MeanMetric(), denominator=StdMetric(), name="sharpe_ratio"
+        )
         sharpe_constraint = SimpleConstraint(
             constraint_value=portfolio,
             threshold=5.0,
@@ -269,8 +285,12 @@ class TestCompositeMetricsInConstraints:
         )
 
         # Maximize Sharpe ratio (mean/std)
-        sharpe_metric = RatioMetric(numerator=MeanMetric(), denominator=StdMetric(), name="sharpe_ratio")
-        objective = ObjectiveSpec(objective_value=portfolio, metric=sharpe_metric, direction="maximize")
+        sharpe_metric = RatioMetric(
+            numerator=MeanMetric(), denominator=StdMetric(), name="sharpe_ratio"
+        )
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=sharpe_metric, direction="maximize"
+        )
 
         # Cap on portfolio mean (to make problem interesting)
         mean_constraint = SimpleConstraint(
@@ -311,12 +331,15 @@ class TestLargePortfolio:
         # Create portfolio with 10 assets
         np.random.seed(42)
         portfolio_dict = {
-            f"asset{i}": StochasticScalar(np.random.normal(100 + i * 10, 10, n_sims)) for i in range(n_assets)
+            f"asset{i}": StochasticScalar(np.random.normal(100 + i * 10, 10, n_sims))
+            for i in range(n_assets)
         }
         portfolio = ProteusVariable("item", portfolio_dict)
 
         # Maximize mean
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         # Add a few constraints
         std_constraint = SimpleConstraint(
@@ -339,7 +362,9 @@ class TestLargePortfolio:
         current_shares = {f"asset{i}": 1.0 / n_assets for i in range(n_assets)}
 
         # Bounds: each asset between 0 and 0.2 (20%)
-        share_bounds = {f"asset{i}": BoundsSpec(lower=0.0, upper=0.2) for i in range(n_assets)}
+        share_bounds = {
+            f"asset{i}": BoundsSpec(lower=0.0, upper=0.2) for i in range(n_assets)
+        }
 
         opt_input = OptimizationInput(
             item_ids=[f"asset{i}" for i in range(n_assets)],
@@ -379,7 +404,9 @@ class TestFullAPIWorkflow:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         constraint = SimpleConstraint(
             constraint_value=portfolio,
@@ -417,7 +444,9 @@ class TestFullAPIWorkflow:
         assert result.objective_value is not None
         assert len(result.constraint_results) == 1
         assert result.constraint_results[0].is_satisfied
-        assert result.constraint_results[0].slack >= -1e-6  # Non-negative slack for satisfied constraint
+        assert (
+            result.constraint_results[0].slack >= -1e-6
+        )  # Non-negative slack for satisfied constraint
 
         # Test result is frozen (immutable)
         with pytest.raises(Exception):
@@ -431,7 +460,9 @@ class TestFullAPIWorkflow:
                 "item",
                 {
                     "asset1": StochasticScalar([100.0, 110.0, 90.0]),
-                    "asset2": StochasticScalar([200.0, 220.0, 180.0, 210.0]),  # Different length!
+                    "asset2": StochasticScalar(
+                        [200.0, 220.0, 180.0, 210.0]
+                    ),  # Different length!
                 },
             )
 
@@ -450,8 +481,12 @@ class TestEfficientFrontierIntegration:
         )
 
         # Sharpe ratio objective
-        sharpe_metric = RatioMetric(numerator=MeanMetric(), denominator=StdMetric(), name="sharpe_ratio")
-        objective = ObjectiveSpec(objective_value=portfolio, metric=sharpe_metric, direction="maximize")
+        sharpe_metric = RatioMetric(
+            numerator=MeanMetric(), denominator=StdMetric(), name="sharpe_ratio"
+        )
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=sharpe_metric, direction="maximize"
+        )
 
         # Varying risk constraint
         risk_constraint = SimpleConstraint(
@@ -517,13 +552,17 @@ class TestEfficientFrontierIntegration:
                 ),
                 "asset2": FreqSevSims(
                     sim_index=sim_index,
-                    values=np.array([1500.0, 2000.0, 1800.0, 2200.0, 1600.0], dtype=float),
+                    values=np.array(
+                        [1500.0, 2000.0, 1800.0, 2200.0, 1600.0], dtype=float
+                    ),
                     n_sims=n_sims,
                 ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         # Fixed simple constraint
         simple_constraint = SimpleConstraint(
@@ -597,7 +636,9 @@ class TestRealWorldScenarios:
         )
 
         # Minimize portfolio std deviation (risk parity objective)
-        objective = ObjectiveSpec(objective_value=portfolio, metric=StdMetric(), direction="minimize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=StdMetric(), direction="minimize"
+        )
 
         # Floor on minimum return
         mean_constraint = SimpleConstraint(

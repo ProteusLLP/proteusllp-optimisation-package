@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for FreqSev constraint optimization.
+"""Comprehensive tests for FreqSev constraint optimization.
 
 Tests cover:
 - Multiple FreqSev constraints (independent and interacting)
@@ -18,9 +17,6 @@ FreqSevSims structure reminder:
 
 import numpy as np
 import pytest
-from pal import FreqSevSims, StochasticScalar
-from pal.variables import ProteusVariable
-
 from optimizer import (
     BoundsSpec,
     FreqSevConstraint,
@@ -31,6 +27,8 @@ from optimizer import (
     StdMetric,
     optimize,
 )
+from pal import FreqSevSims, StochasticScalar
+from pal.variables import ProteusVariable
 
 
 class TestFreqSevBasicConstraints:
@@ -77,7 +75,9 @@ class TestFreqSevBasicConstraints:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         # Constrain mean loss to be <= 1500 (lower threshold to avoid maxing out shares)
         freqsev_constraint = FreqSevConstraint(
@@ -109,12 +109,14 @@ class TestFreqSevBasicConstraints:
         constraint_result = result.constraint_results[0]
 
         # Constraint should have actual non-zero value now
-        assert constraint_result.actual_value > 0, f"Expected non-zero loss, got {constraint_result.actual_value}"
+        assert constraint_result.actual_value > 0, (
+            f"Expected non-zero loss, got {constraint_result.actual_value}"
+        )
         # With tight constraint, we allow small violations due to numerical precision
         tolerance = 1e-4
-        assert (
-            constraint_result.actual_value <= 1500.0 + tolerance
-        ), f"Loss {constraint_result.actual_value} exceeds threshold by more than tolerance"
+        assert constraint_result.actual_value <= 1500.0 + tolerance, (
+            f"Loss {constraint_result.actual_value} exceeds threshold by more than tolerance"
+        )
 
     def test_freqsev_mean_cap_constraint(self):
         """Test that cap constraint on mean loss is respected."""
@@ -137,12 +139,18 @@ class TestFreqSevBasicConstraints:
         losses = ProteusVariable(
             "item",
             {
-                "asset1": FreqSevSims(sim_index=sim_index, values=values1, n_sims=n_sims),
-                "asset2": FreqSevSims(sim_index=sim_index, values=values2, n_sims=n_sims),
+                "asset1": FreqSevSims(
+                    sim_index=sim_index, values=values1, n_sims=n_sims
+                ),
+                "asset2": FreqSevSims(
+                    sim_index=sim_index, values=values2, n_sims=n_sims
+                ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         freqsev_constraint = FreqSevConstraint(
             constraint_value=losses,
@@ -193,12 +201,18 @@ class TestFreqSevBasicConstraints:
         losses = ProteusVariable(
             "item",
             {
-                "asset1": FreqSevSims(sim_index=sim_index, values=values1, n_sims=n_sims),
-                "asset2": FreqSevSims(sim_index=sim_index, values=values2, n_sims=n_sims),
+                "asset1": FreqSevSims(
+                    sim_index=sim_index, values=values1, n_sims=n_sims
+                ),
+                "asset2": FreqSevSims(
+                    sim_index=sim_index, values=values2, n_sims=n_sims
+                ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         # Floor constraint: mean loss must be at least 500
         freqsev_constraint = FreqSevConstraint(
@@ -252,7 +266,9 @@ class TestFreqSevBasicConstraints:
                 ),
                 "asset2": FreqSevSims(
                     sim_index=sim_index,
-                    values=np.array([15.0, 80.0, 45.0, 25.0, 60.0]),  # Higher tail losses
+                    values=np.array(
+                        [15.0, 80.0, 45.0, 25.0, 60.0]
+                    ),  # Higher tail losses
                     n_sims=n_sims,
                 ),
             },
@@ -292,9 +308,9 @@ class TestFreqSevBasicConstraints:
         # Verify tail risk constraint is satisfied
         constraint_result = result.constraint_results[0]
         tolerance = 1e-4
-        assert (
-            constraint_result.actual_value <= 60.0 + tolerance
-        ), f"Tail risk {constraint_result.actual_value} exceeds cap of 60.0"
+        assert constraint_result.actual_value <= 60.0 + tolerance, (
+            f"Tail risk {constraint_result.actual_value} exceeds cap of 60.0"
+        )
 
 
 class TestFreqSevMultipleConstraints:
@@ -318,10 +334,14 @@ class TestFreqSevMultipleConstraints:
             "item",
             {
                 "asset1": FreqSevSims(
-                    sim_index=sim_index, values=np.array([500.0, 700.0, 600.0, 800.0, 550.0]), n_sims=n_sims
+                    sim_index=sim_index,
+                    values=np.array([500.0, 700.0, 600.0, 800.0, 550.0]),
+                    n_sims=n_sims,
                 ),
                 "asset2": FreqSevSims(
-                    sim_index=sim_index, values=np.array([1500.0, 2000.0, 1800.0, 2200.0, 1600.0]), n_sims=n_sims
+                    sim_index=sim_index,
+                    values=np.array([1500.0, 2000.0, 1800.0, 2200.0, 1600.0]),
+                    n_sims=n_sims,
                 ),
             },
         )
@@ -330,15 +350,21 @@ class TestFreqSevMultipleConstraints:
             "item",
             {
                 "asset1": FreqSevSims(
-                    sim_index=sim_index, values=np.array([300.0, 400.0, 350.0, 450.0, 380.0]), n_sims=n_sims
+                    sim_index=sim_index,
+                    values=np.array([300.0, 400.0, 350.0, 450.0, 380.0]),
+                    n_sims=n_sims,
                 ),
                 "asset2": FreqSevSims(
-                    sim_index=sim_index, values=np.array([600.0, 800.0, 700.0, 900.0, 750.0]), n_sims=n_sims
+                    sim_index=sim_index,
+                    values=np.array([600.0, 800.0, 700.0, 900.0, 750.0]),
+                    n_sims=n_sims,
                 ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         # Two separate constraints
         constraint1 = FreqSevConstraint(
@@ -398,12 +424,18 @@ class TestFreqSevMultipleConstraints:
         losses = ProteusVariable(
             "item",
             {
-                "asset1": FreqSevSims(sim_index=sim_index, values=values1, n_sims=n_sims),
-                "asset2": FreqSevSims(sim_index=sim_index, values=values2, n_sims=n_sims),
+                "asset1": FreqSevSims(
+                    sim_index=sim_index, values=values1, n_sims=n_sims
+                ),
+                "asset2": FreqSevSims(
+                    sim_index=sim_index, values=values2, n_sims=n_sims
+                ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         # Constrain volatility of losses
         freqsev_constraint = FreqSevConstraint(
@@ -453,17 +485,25 @@ class TestFreqSevIdenticalAndSimilarLosses:
         sim_index = np.array([1, 2, 2, 3, 4], dtype=int)
 
         # Identical loss values for both assets
-        identical_values = np.array([1000.0, 1200.0, 1100.0, 1300.0, 1150.0], dtype=float)
+        identical_values = np.array(
+            [1000.0, 1200.0, 1100.0, 1300.0, 1150.0], dtype=float
+        )
 
         losses = ProteusVariable(
             "item",
             {
-                "asset1": FreqSevSims(sim_index=sim_index, values=identical_values.copy(), n_sims=n_sims),
-                "asset2": FreqSevSims(sim_index=sim_index, values=identical_values.copy(), n_sims=n_sims),
+                "asset1": FreqSevSims(
+                    sim_index=sim_index, values=identical_values.copy(), n_sims=n_sims
+                ),
+                "asset2": FreqSevSims(
+                    sim_index=sim_index, values=identical_values.copy(), n_sims=n_sims
+                ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         freqsev_constraint = FreqSevConstraint(
             constraint_value=losses,
@@ -517,12 +557,18 @@ class TestFreqSevIdenticalAndSimilarLosses:
         losses = ProteusVariable(
             "item",
             {
-                "asset1": FreqSevSims(sim_index=sim_index, values=values1, n_sims=n_sims),
-                "asset2": FreqSevSims(sim_index=sim_index, values=values2, n_sims=n_sims),
+                "asset1": FreqSevSims(
+                    sim_index=sim_index, values=values1, n_sims=n_sims
+                ),
+                "asset2": FreqSevSims(
+                    sim_index=sim_index, values=values2, n_sims=n_sims
+                ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         freqsev_constraint = FreqSevConstraint(
             constraint_value=losses,
@@ -573,12 +619,18 @@ class TestFreqSevEdgeCases:
         losses = ProteusVariable(
             "item",
             {
-                "asset1": FreqSevSims(sim_index=sim_index, values=values1, n_sims=n_sims),
-                "asset2": FreqSevSims(sim_index=sim_index, values=values2, n_sims=n_sims),
+                "asset1": FreqSevSims(
+                    sim_index=sim_index, values=values1, n_sims=n_sims
+                ),
+                "asset2": FreqSevSims(
+                    sim_index=sim_index, values=values2, n_sims=n_sims
+                ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         freqsev_constraint = FreqSevConstraint(
             constraint_value=losses,
@@ -625,11 +677,15 @@ class TestFreqSevEdgeCases:
         losses = ProteusVariable(
             "item",
             {
-                "asset1": FreqSevSims(sim_index=sim_index, values=values1, n_sims=n_sims),
+                "asset1": FreqSevSims(
+                    sim_index=sim_index, values=values1, n_sims=n_sims
+                ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         freqsev_constraint = FreqSevConstraint(
             constraint_value=losses,
@@ -684,20 +740,34 @@ class TestFreqSevFailureCases:
         losses = ProteusVariable(
             "item",
             {
-                "asset1": FreqSevSims(sim_index=sim_index, values=values1, n_sims=n_sims),
-                "asset2": FreqSevSims(sim_index=sim_index, values=values2, n_sims=n_sims),
+                "asset1": FreqSevSims(
+                    sim_index=sim_index, values=values1, n_sims=n_sims
+                ),
+                "asset2": FreqSevSims(
+                    sim_index=sim_index, values=values2, n_sims=n_sims
+                ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         # Conflicting constraints: mean loss <= 800 AND mean loss >= 1500
         constraint1 = FreqSevConstraint(
-            constraint_value=losses, threshold=800.0, direction="cap", metric=MeanMetric(), name="cap_constraint"
+            constraint_value=losses,
+            threshold=800.0,
+            direction="cap",
+            metric=MeanMetric(),
+            name="cap_constraint",
         )
 
         constraint2 = FreqSevConstraint(
-            constraint_value=losses, threshold=1500.0, direction="floor", metric=MeanMetric(), name="floor_constraint"
+            constraint_value=losses,
+            threshold=1500.0,
+            direction="floor",
+            metric=MeanMetric(),
+            name="floor_constraint",
         )
 
         opt_input = OptimizationInput(
@@ -741,12 +811,18 @@ class TestFreqSevFailureCases:
         losses = ProteusVariable(
             "item",
             {
-                "asset1": FreqSevSims(sim_index=sim_index, values=values1, n_sims=n_sims),
-                "asset2": FreqSevSims(sim_index=sim_index, values=values2, n_sims=n_sims),
+                "asset1": FreqSevSims(
+                    sim_index=sim_index, values=values1, n_sims=n_sims
+                ),
+                "asset2": FreqSevSims(
+                    sim_index=sim_index, values=values2, n_sims=n_sims
+                ),
             },
         )
 
-        objective = ObjectiveSpec(objective_value=portfolio, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=portfolio, metric=MeanMetric(), direction="maximize"
+        )
 
         # Impossible constraint: mean loss <= 500 (but minimum possible is ~2000)
         freqsev_constraint = FreqSevConstraint(

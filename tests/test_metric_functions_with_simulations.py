@@ -1,5 +1,4 @@
-"""
-Test that metric calculator functions correctly operate on simulation data.
+"""Test that metric calculator functions correctly operate on simulation data.
 
 This tests the ACTUAL FUNCTIONS returned by create_metric_calculator to verify they:
 1. Correctly apply weights to simulation data
@@ -12,19 +11,17 @@ The distinction from test_metric_calculations.py:
 """
 
 import numpy as np
-from pal import StochasticScalar
-from pal.variables import ProteusVariable
-
 from optimizer import MeanMetric, SpreadVarMetric, StdMetric
 from optimizer.transforms import create_metric_calculator
+from pal import StochasticScalar
+from pal.variables import ProteusVariable
 
 
 class TestMeanCalculatorAgainstSimulations:
     """Verify mean calculator matches ground truth from manual simulation computation."""
 
     def test_mean_matches_weighted_portfolio_mean(self):
-        """
-        Test: value_func(weights) should equal mean of (sim1 * w1 + sim2 * w2).
+        """Test: value_func(weights) should equal mean of (sim1 * w1 + sim2 * w2).
 
         This verifies the mean calculator is actually computing the portfolio mean
         correctly from the underlying simulations.
@@ -42,7 +39,9 @@ class TestMeanCalculatorAgainstSimulations:
         )
 
         # Get calculator functions
-        value_func, grad_func = create_metric_calculator(MeanMetric(), pv, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            MeanMetric(), pv, ["asset1", "asset2"]
+        )
 
         # Test with various weight combinations
         test_weights = [
@@ -70,8 +69,7 @@ class TestMeanCalculatorAgainstSimulations:
             )
 
     def test_mean_gradient_matches_individual_asset_means(self):
-        """
-        Test: grad_func should return [mean(asset1), mean(asset2), ...].
+        """Test: grad_func should return [mean(asset1), mean(asset2), ...].
 
         The gradient of portfolio mean w.r.t. weight_i is just mean(asset_i).
         """
@@ -86,7 +84,9 @@ class TestMeanCalculatorAgainstSimulations:
             },
         )
 
-        value_func, grad_func = create_metric_calculator(MeanMetric(), pv, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            MeanMetric(), pv, ["asset1", "asset2"]
+        )
 
         # Gradient should be independent of weights for linear mean
         weights = np.array([0.6, 0.4])
@@ -102,8 +102,7 @@ class TestStdCalculatorAgainstSimulations:
     """Verify std calculator matches ground truth from manual simulation computation."""
 
     def test_std_matches_weighted_portfolio_std(self):
-        """
-        Test: value_func(weights) should equal std of (sim1 * w1 + sim2 * w2).
+        """Test: value_func(weights) should equal std of (sim1 * w1 + sim2 * w2).
 
         This verifies the std calculator computes portfolio volatility correctly.
         """
@@ -118,7 +117,9 @@ class TestStdCalculatorAgainstSimulations:
             },
         )
 
-        value_func, grad_func = create_metric_calculator(StdMetric(), pv, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            StdMetric(), pv, ["asset1", "asset2"]
+        )
 
         # Test with various weights
         test_weights = [
@@ -143,8 +144,7 @@ class TestStdCalculatorAgainstSimulations:
             )
 
     def test_std_gradient_direction_increases_risk(self):
-        """
-        Test: grad_func gradient should indicate direction of increasing volatility.
+        """Test: grad_func gradient should indicate direction of increasing volatility.
 
         If increasing weight on asset_i increases portfolio std, gradient[i] > 0.
         This is a consistency check (not exact value matching).
@@ -161,7 +161,9 @@ class TestStdCalculatorAgainstSimulations:
             },
         )
 
-        value_func, grad_func = create_metric_calculator(StdMetric(), pv, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            StdMetric(), pv, ["asset1", "asset2"]
+        )
 
         # Equal weights as baseline
         weights = np.array([0.5, 0.5])
@@ -180,20 +182,21 @@ class TestStdCalculatorAgainstSimulations:
         numerical_grad_1 = (std_plus_1 - std_base) / epsilon
 
         # Gradient[0] should be positive (increasing asset1 weight increases risk)
-        assert gradient[0] > 0, "Gradient should indicate high-volatility asset increases risk"
+        assert gradient[0] > 0, (
+            "Gradient should indicate high-volatility asset increases risk"
+        )
 
         # Sign should match numerical gradient
-        assert np.sign(gradient[0]) == np.sign(
-            numerical_grad_1
-        ), "Analytical gradient sign should match numerical gradient"
+        assert np.sign(gradient[0]) == np.sign(numerical_grad_1), (
+            "Analytical gradient sign should match numerical gradient"
+        )
 
 
 class TestSpreadVarCalculatorAgainstSimulations:
     """Verify SpreadVar calculator matches ground truth from manual computation."""
 
     def test_spreadvar_full_range_matches_mean(self):
-        """
-        Test: SpreadVar(0, 100) should equal mean of weighted portfolio.
+        """Test: SpreadVar(0, 100) should equal mean of weighted portfolio.
 
         Full percentile range should give the same result as mean.
         """
@@ -216,7 +219,9 @@ class TestSpreadVarCalculatorAgainstSimulations:
         )
 
         # Mean for comparison
-        mean_value_func, _ = create_metric_calculator(MeanMetric(), pv, ["asset1", "asset2"])
+        mean_value_func, _ = create_metric_calculator(
+            MeanMetric(), pv, ["asset1", "asset2"]
+        )
 
         weights = np.array([0.6, 0.4])
 
@@ -226,8 +231,7 @@ class TestSpreadVarCalculatorAgainstSimulations:
         np.testing.assert_allclose(sv_value, mean_value, rtol=1e-10)
 
     def test_spreadvar_top_tail_matches_manual_computation(self):
-        """
-        Test: SpreadVar(80, 100) should equal mean of top 20% of weighted portfolio sims.
+        """Test: SpreadVar(80, 100) should equal mean of top 20% of weighted portfolio sims.
 
         This verifies percentile filtering works correctly.
         """
@@ -274,9 +278,7 @@ class TestSpreadVarCalculatorAgainstSimulations:
         )
 
     def test_spreadvar_bottom_tail_matches_manual_computation(self):
-        """
-        Test: SpreadVar(0, 20) should equal mean of bottom 20% of weighted portfolio sims.
-        """
+        """Test: SpreadVar(0, 20) should equal mean of bottom 20% of weighted portfolio sims."""
         np.random.seed(43)
         n_sims = 100
         sims1 = np.random.normal(100, 20, n_sims)
@@ -317,8 +319,7 @@ class TestSpreadVarCalculatorAgainstSimulations:
         )
 
     def test_spreadvar_middle_range(self):
-        """
-        Test: SpreadVar(40, 60) should equal mean of middle 20% of weighted portfolio.
+        """Test: SpreadVar(40, 60) should equal mean of middle 20% of weighted portfolio.
 
         Tests percentile range that doesn't include endpoints.
         """
@@ -378,7 +379,9 @@ class TestGradientConsistencyWithValues:
             },
         )
 
-        value_func, grad_func = create_metric_calculator(MeanMetric(), pv, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            MeanMetric(), pv, ["asset1", "asset2"]
+        )
 
         weights = np.array([0.6, 0.4])
         analytical_grad = grad_func(weights)
@@ -394,7 +397,9 @@ class TestGradientConsistencyWithValues:
             weights_minus = weights.copy()
             weights_minus[i] -= epsilon
 
-            numerical_grad[i] = (value_func(weights_plus) - value_func(weights_minus)) / (2 * epsilon)
+            numerical_grad[i] = (
+                value_func(weights_plus) - value_func(weights_minus)
+            ) / (2 * epsilon)
 
         np.testing.assert_allclose(
             analytical_grad,
@@ -416,7 +421,9 @@ class TestGradientConsistencyWithValues:
             },
         )
 
-        value_func, grad_func = create_metric_calculator(StdMetric(), pv, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            StdMetric(), pv, ["asset1", "asset2"]
+        )
 
         weights = np.array([0.6, 0.4])
         analytical_grad = grad_func(weights)
@@ -432,7 +439,9 @@ class TestGradientConsistencyWithValues:
             weights_minus = weights.copy()
             weights_minus[i] -= epsilon
 
-            numerical_grad[i] = (value_func(weights_plus) - value_func(weights_minus)) / (2 * epsilon)
+            numerical_grad[i] = (
+                value_func(weights_plus) - value_func(weights_minus)
+            ) / (2 * epsilon)
 
         np.testing.assert_allclose(
             analytical_grad,
@@ -476,7 +485,9 @@ class TestGradientConsistencyWithValues:
             weights_minus = weights.copy()
             weights_minus[i] -= epsilon
 
-            numerical_grad[i] = (value_func(weights_plus) - value_func(weights_minus)) / (2 * epsilon)
+            numerical_grad[i] = (
+                value_func(weights_plus) - value_func(weights_minus)
+            ) / (2 * epsilon)
 
         # Use looser tolerance for percentile-based calculations (discontinuous)
         np.testing.assert_allclose(

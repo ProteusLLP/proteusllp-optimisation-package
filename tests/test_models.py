@@ -1,15 +1,10 @@
-"""
-Tests for Pydantic model validation and structure.
+"""Tests for Pydantic model validation and structure.
 
 This module tests the basic model creation, field validation, and
 serialization/deserialization without running actual optimizations.
 """
 
 import pytest
-from pal import StochasticScalar
-from pal.variables import ProteusVariable
-from pydantic import ValidationError
-
 from optimizer import (
     BoundsSpec,
     ConstraintVariation,
@@ -26,6 +21,9 @@ from optimizer import (
     StdMetric,
     SumMetric,
 )
+from pal import StochasticScalar
+from pal.variables import ProteusVariable
+from pydantic import ValidationError
 
 
 class TestBoundsSpec:
@@ -92,7 +90,10 @@ class TestMetricModels:
         """Test that SpreadVarMetric validates lower < upper."""
         with pytest.raises(ValidationError) as exc_info:
             SpreadVarMetric(lower_percentile=99.0, upper_percentile=90.0)
-        assert "upper" in str(exc_info.value).lower() or "greater" in str(exc_info.value).lower()
+        assert (
+            "upper" in str(exc_info.value).lower()
+            or "greater" in str(exc_info.value).lower()
+        )
 
     def test_spreadvar_metric_validation_out_of_range(self):
         """Test that SpreadVarMetric validates percentiles are in [0, 100]."""
@@ -261,7 +262,9 @@ class TestOptimizationInput:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=pv, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=pv, metric=MeanMetric(), direction="maximize"
+        )
 
         opt_input = OptimizationInput(item_ids=["item1", "item2"], objective=objective)
 
@@ -280,10 +283,14 @@ class TestOptimizationInput:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=pv, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=pv, metric=MeanMetric(), direction="maximize"
+        )
 
         with pytest.raises(ValidationError) as exc_info:
-            OptimizationInput(item_ids=["item1", "item1"], objective=objective)  # Duplicate
+            OptimizationInput(
+                item_ids=["item1", "item1"], objective=objective
+            )  # Duplicate
         assert "Duplicate item_ids" in str(exc_info.value)
 
     def test_simple_constraint_with_name(self):
@@ -322,20 +329,33 @@ class TestEfficientFrontierInput:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=pv, metric=MeanMetric(), direction="maximize")
-
-        constraint = SimpleConstraint(
-            constraint_value=pv, threshold=100.0, direction="cap", metric=StdMetric(), name="max_risk"
+        objective = ObjectiveSpec(
+            objective_value=pv, metric=MeanMetric(), direction="maximize"
         )
 
-        opt_input = OptimizationInput(item_ids=["item1", "item2"], objective=objective, simple_constraints=[constraint])
+        constraint = SimpleConstraint(
+            constraint_value=pv,
+            threshold=100.0,
+            direction="cap",
+            metric=StdMetric(),
+            name="max_risk",
+        )
+
+        opt_input = OptimizationInput(
+            item_ids=["item1", "item2"],
+            objective=objective,
+            simple_constraints=[constraint],
+        )
 
         # Create frontier input
         frontier_input = EfficientFrontierInput(
             base_optimization=opt_input,
             constraint_variations=[
                 ConstraintVariation(
-                    constraint_type="simple", constraint_name="max_risk", min_threshold=50.0, max_threshold=150.0
+                    constraint_type="simple",
+                    constraint_name="max_risk",
+                    min_threshold=50.0,
+                    max_threshold=150.0,
                 )
             ],
             n_points=10,
@@ -353,13 +373,21 @@ class TestEfficientFrontierInput:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=pv, metric=MeanMetric(), direction="maximize")
-
-        constraint = SimpleConstraint(
-            constraint_value=pv, threshold=100.0, direction="cap", metric=StdMetric(), name="max_risk"
+        objective = ObjectiveSpec(
+            objective_value=pv, metric=MeanMetric(), direction="maximize"
         )
 
-        opt_input = OptimizationInput(item_ids=["item1"], objective=objective, simple_constraints=[constraint])
+        constraint = SimpleConstraint(
+            constraint_value=pv,
+            threshold=100.0,
+            direction="cap",
+            metric=StdMetric(),
+            name="max_risk",
+        )
+
+        opt_input = OptimizationInput(
+            item_ids=["item1"], objective=objective, simple_constraints=[constraint]
+        )
 
         with pytest.raises(ValidationError) as exc_info:
             EfficientFrontierInput(
@@ -385,7 +413,9 @@ class TestEfficientFrontierInput:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=pv, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=pv, metric=MeanMetric(), direction="maximize"
+        )
 
         constraint = SimpleConstraint(
             constraint_value=pv,
@@ -395,14 +425,19 @@ class TestEfficientFrontierInput:
             # No name provided
         )
 
-        opt_input = OptimizationInput(item_ids=["item1"], objective=objective, simple_constraints=[constraint])
+        opt_input = OptimizationInput(
+            item_ids=["item1"], objective=objective, simple_constraints=[constraint]
+        )
 
         with pytest.raises(ValidationError) as exc_info:
             EfficientFrontierInput(
                 base_optimization=opt_input,
                 constraint_variations=[
                     ConstraintVariation(
-                        constraint_type="simple", constraint_name="some_name", min_threshold=50.0, max_threshold=150.0
+                        constraint_type="simple",
+                        constraint_name="some_name",
+                        min_threshold=50.0,
+                        max_threshold=150.0,
                     )
                 ],
                 n_points=10,
@@ -418,20 +453,31 @@ class TestEfficientFrontierInput:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=pv, metric=MeanMetric(), direction="maximize")
-
-        constraint = SimpleConstraint(
-            constraint_value=pv, threshold=100.0, direction="cap", metric=StdMetric(), name="max_risk"
+        objective = ObjectiveSpec(
+            objective_value=pv, metric=MeanMetric(), direction="maximize"
         )
 
-        opt_input = OptimizationInput(item_ids=["item1"], objective=objective, simple_constraints=[constraint])
+        constraint = SimpleConstraint(
+            constraint_value=pv,
+            threshold=100.0,
+            direction="cap",
+            metric=StdMetric(),
+            name="max_risk",
+        )
+
+        opt_input = OptimizationInput(
+            item_ids=["item1"], objective=objective, simple_constraints=[constraint]
+        )
 
         with pytest.raises(ValidationError) as exc_info:
             EfficientFrontierInput(
                 base_optimization=opt_input,
                 constraint_variations=[
                     ConstraintVariation(
-                        constraint_type="simple", constraint_name="max_risk", min_threshold=50.0, max_threshold=150.0
+                        constraint_type="simple",
+                        constraint_name="max_risk",
+                        min_threshold=50.0,
+                        max_threshold=150.0,
                     ),
                     ConstraintVariation(
                         constraint_type="simple",

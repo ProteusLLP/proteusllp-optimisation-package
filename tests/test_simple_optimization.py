@@ -1,14 +1,10 @@
-"""
-Tests for simple optimization with StochasticScalar variables.
+"""Tests for simple optimization with StochasticScalar variables.
 
 This module tests the core optimization functionality using basic PAL variables,
 constraints, and objectives without FreqSev complexity.
 """
 
 import pytest
-from pal import StochasticScalar
-from pal.variables import ProteusVariable
-
 from optimizer import (
     BoundsSpec,
     MeanMetric,
@@ -19,6 +15,8 @@ from optimizer import (
     StdMetric,
     optimize,
 )
+from pal import StochasticScalar
+from pal.variables import ProteusVariable
 
 
 class TestBasicOptimization:
@@ -35,7 +33,9 @@ class TestBasicOptimization:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         # Add reasonable bounds to prevent unbounded solutions
         opt_input = OptimizationInput(
@@ -54,7 +54,10 @@ class TestBasicOptimization:
         assert result.optimal_shares is not None
         # Both assets maxed out at bounds (both have positive mean)
         # Just check optimization succeeded and shares are at bounds
-        assert result.optimal_shares["asset1"] + result.optimal_shares["asset2"] <= 200.0 + 1e-6
+        assert (
+            result.optimal_shares["asset1"] + result.optimal_shares["asset2"]
+            <= 200.0 + 1e-6
+        )
 
     def test_minimize_std_dev(self):
         """Test minimizing standard deviation."""
@@ -67,7 +70,9 @@ class TestBasicOptimization:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=StdMetric(), direction="minimize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=StdMetric(), direction="minimize"
+        )
 
         opt_input = OptimizationInput(
             item_ids=["low_risk", "high_risk"],
@@ -87,8 +92,12 @@ class TestBasicOptimization:
         returns = ProteusVariable(
             "item",
             {
-                "asset1": StochasticScalar([0.02, 0.04, 0.06, 0.08, 0.10]),  # Uniform distribution
-                "asset2": StochasticScalar([0.00, 0.02, 0.05, 0.12, 0.15]),  # Higher top tail
+                "asset1": StochasticScalar(
+                    [0.02, 0.04, 0.06, 0.08, 0.10]
+                ),  # Uniform distribution
+                "asset2": StochasticScalar(
+                    [0.00, 0.02, 0.05, 0.12, 0.15]
+                ),  # Higher top tail
             },
         )
 
@@ -115,7 +124,10 @@ class TestBasicOptimization:
         assert result.optimal_shares is not None
         # Both assets maxed out at upper bounds (both have positive top tail)
         # Just verify optimization succeeded
-        assert result.optimal_shares["asset1"] + result.optimal_shares["asset2"] <= 200.0 + 1e-6
+        assert (
+            result.optimal_shares["asset1"] + result.optimal_shares["asset2"]
+            <= 200.0 + 1e-6
+        )
 
     def test_minimize_spreadvar_bottom_tail(self):
         """Test minimizing SpreadVar on bottom tail (reducing downside risk)."""
@@ -125,7 +137,9 @@ class TestBasicOptimization:
         returns = ProteusVariable(
             "item",
             {
-                "safe": StochasticScalar([0.05, 0.06, 0.04, 0.05, 0.07, 0.03, 0.06, 0.05, 0.04, 0.06]),  # All positive
+                "safe": StochasticScalar(
+                    [0.05, 0.06, 0.04, 0.05, 0.07, 0.03, 0.06, 0.05, 0.04, 0.06]
+                ),  # All positive
                 "risky": StochasticScalar(
                     [-0.20, -0.15, 0.05, 0.10, 0.15, 0.08, 0.12, 0.10, 0.20, 0.18]
                 ),  # Has large losses in bottom tail
@@ -170,7 +184,9 @@ class TestBoundsHandling:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         # Restrict asset2 to maximum 30% of portfolio
         opt_input = OptimizationInput(
@@ -200,7 +216,9 @@ class TestBoundsHandling:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         # Fix asset1 at exactly 40
         opt_input = OptimizationInput(
@@ -234,7 +252,9 @@ class TestSimpleConstraints:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         constraint = SimpleConstraint(
             constraint_value=returns,
@@ -270,7 +290,9 @@ class TestSimpleConstraints:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         constraint = SimpleConstraint(
             constraint_value=returns,
@@ -311,7 +333,9 @@ class TestSimpleConstraints:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         constraints = [
             SimpleConstraint(
@@ -359,7 +383,9 @@ class TestConstraintEvaluation:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         constraint = SimpleConstraint(
             constraint_value=returns,
@@ -401,7 +427,9 @@ class TestConstraintEvaluation:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         # Impossible constraint: mean must be <= 0.01 (too low)
         constraint = SimpleConstraint(
@@ -443,7 +471,9 @@ class TestOptimizationResult:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         opt_input = OptimizationInput(
             item_ids=["asset1", "asset2"],
@@ -474,7 +504,9 @@ class TestOptimizationResult:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         opt_input = OptimizationInput(
             item_ids=["asset1"],
@@ -506,7 +538,9 @@ class TestOptimizationFailures:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         # Conflicting constraints: mean >= 150 AND mean <= 100
         constraint_floor = SimpleConstraint(
@@ -554,7 +588,9 @@ class TestOptimizationFailures:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         # Constraint: std dev must be >= 30 (need asset2 with high share)
         constraint = SimpleConstraint(
@@ -572,7 +608,9 @@ class TestOptimizationFailures:
             current_shares={"asset1": 0.9, "asset2": 0.1},
             simple_constraints=[constraint],
             share_bounds={
-                "asset1": BoundsSpec(lower=0.85, upper=0.95),  # Forced to use mostly asset1
+                "asset1": BoundsSpec(
+                    lower=0.85, upper=0.95
+                ),  # Forced to use mostly asset1
                 "asset2": BoundsSpec(lower=0.05, upper=0.15),  # Can't get enough asset2
             },
         )
@@ -602,7 +640,9 @@ class TestOptimizationFailures:
             },
         )
 
-        objective = ObjectiveSpec(objective_value=returns, metric=MeanMetric(), direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=MeanMetric(), direction="maximize"
+        )
 
         # Require std dev >= 100 when portfolio std dev is ~10-15
         constraint = SimpleConstraint(

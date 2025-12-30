@@ -1,5 +1,4 @@
-"""
-Tests for composite metric calculations and optimization.
+"""Tests for composite metric calculations and optimization.
 
 Tests cover:
 - RatioMetric (e.g., Sharpe ratio: mean/std)
@@ -13,9 +12,6 @@ Tests cover:
 
 import numpy as np
 import pytest
-from pal import StochasticScalar
-from pal.variables import ProteusVariable
-
 from optimizer import (
     BoundsSpec,
     DifferenceMetric,
@@ -30,6 +26,8 @@ from optimizer import (
     optimize,
 )
 from optimizer.transforms import create_metric_calculator
+from pal import StochasticScalar
+from pal.variables import ProteusVariable
 
 
 class TestRatioMetricCalculations:
@@ -47,7 +45,9 @@ class TestRatioMetricCalculations:
 
         # Create Sharpe-like ratio: mean / std
         metric = RatioMetric(numerator=MeanMetric(), denominator=StdMetric())
-        value_func, grad_func = create_metric_calculator(metric, returns, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            metric, returns, ["asset1", "asset2"]
+        )
 
         # Test 100% asset1
         weights = np.array([1.0, 0.0])
@@ -72,7 +72,9 @@ class TestRatioMetricCalculations:
         )
 
         metric = RatioMetric(numerator=MeanMetric(), denominator=StdMetric())
-        value_func, grad_func = create_metric_calculator(metric, returns, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            metric, returns, ["asset1", "asset2"]
+        )
 
         weights = np.array([0.6, 0.4])
         calculated_ratio = value_func(weights)
@@ -96,7 +98,9 @@ class TestRatioMetricCalculations:
         )
 
         metric = RatioMetric(numerator=MeanMetric(), denominator=StdMetric())
-        value_func, grad_func = create_metric_calculator(metric, returns, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            metric, returns, ["asset1", "asset2"]
+        )
 
         weights = np.array([0.6, 0.4])
         analytical_grad = grad_func(weights)
@@ -109,9 +113,13 @@ class TestRatioMetricCalculations:
             weights_plus[i] += epsilon
             weights_minus = weights.copy()
             weights_minus[i] -= epsilon
-            numerical_grad[i] = (value_func(weights_plus) - value_func(weights_minus)) / (2 * epsilon)
+            numerical_grad[i] = (
+                value_func(weights_plus) - value_func(weights_minus)
+            ) / (2 * epsilon)
 
-        np.testing.assert_allclose(analytical_grad, numerical_grad, rtol=1e-5, atol=1e-8)
+        np.testing.assert_allclose(
+            analytical_grad, numerical_grad, rtol=1e-5, atol=1e-8
+        )
 
 
 class TestProductMetricCalculations:
@@ -128,7 +136,9 @@ class TestProductMetricCalculations:
         )
 
         metric = ProductMetric(factor1=MeanMetric(), factor2=StdMetric())
-        value_func, grad_func = create_metric_calculator(metric, returns, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            metric, returns, ["asset1", "asset2"]
+        )
 
         weights = np.array([1.0, 0.0])
         calculated_product = value_func(weights)
@@ -152,7 +162,9 @@ class TestProductMetricCalculations:
         )
 
         metric = ProductMetric(factor1=MeanMetric(), factor2=StdMetric())
-        value_func, grad_func = create_metric_calculator(metric, returns, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            metric, returns, ["asset1", "asset2"]
+        )
 
         weights = np.array([0.5, 0.5])
         analytical_grad = grad_func(weights)
@@ -165,9 +177,13 @@ class TestProductMetricCalculations:
             weights_plus[i] += epsilon
             weights_minus = weights.copy()
             weights_minus[i] -= epsilon
-            numerical_grad[i] = (value_func(weights_plus) - value_func(weights_minus)) / (2 * epsilon)
+            numerical_grad[i] = (
+                value_func(weights_plus) - value_func(weights_minus)
+            ) / (2 * epsilon)
 
-        np.testing.assert_allclose(analytical_grad, numerical_grad, rtol=1e-5, atol=1e-8)
+        np.testing.assert_allclose(
+            analytical_grad, numerical_grad, rtol=1e-5, atol=1e-8
+        )
 
 
 class TestSumMetricCalculations:
@@ -205,7 +221,9 @@ class TestSumMetricCalculations:
         )
 
         metric = SumMetric(metric1=MeanMetric(), metric2=StdMetric())
-        value_func, grad_func = create_metric_calculator(metric, returns, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            metric, returns, ["asset1", "asset2"]
+        )
 
         weights = np.array([0.7, 0.3])
         analytical_grad = grad_func(weights)
@@ -218,9 +236,13 @@ class TestSumMetricCalculations:
             weights_plus[i] += epsilon
             weights_minus = weights.copy()
             weights_minus[i] -= epsilon
-            numerical_grad[i] = (value_func(weights_plus) - value_func(weights_minus)) / (2 * epsilon)
+            numerical_grad[i] = (
+                value_func(weights_plus) - value_func(weights_minus)
+            ) / (2 * epsilon)
 
-        np.testing.assert_allclose(analytical_grad, numerical_grad, rtol=1e-5, atol=1e-8)
+        np.testing.assert_allclose(
+            analytical_grad, numerical_grad, rtol=1e-5, atol=1e-8
+        )
 
 
 class TestDifferenceMetricCalculations:
@@ -258,7 +280,9 @@ class TestDifferenceMetricCalculations:
         )
 
         metric = DifferenceMetric(metric1=MeanMetric(), metric2=StdMetric())
-        value_func, grad_func = create_metric_calculator(metric, returns, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            metric, returns, ["asset1", "asset2"]
+        )
 
         weights = np.array([0.4, 0.6])
         analytical_grad = grad_func(weights)
@@ -271,9 +295,13 @@ class TestDifferenceMetricCalculations:
             weights_plus[i] += epsilon
             weights_minus = weights.copy()
             weights_minus[i] -= epsilon
-            numerical_grad[i] = (value_func(weights_plus) - value_func(weights_minus)) / (2 * epsilon)
+            numerical_grad[i] = (
+                value_func(weights_plus) - value_func(weights_minus)
+            ) / (2 * epsilon)
 
-        np.testing.assert_allclose(analytical_grad, numerical_grad, rtol=1e-5, atol=1e-8)
+        np.testing.assert_allclose(
+            analytical_grad, numerical_grad, rtol=1e-5, atol=1e-8
+        )
 
 
 class TestNestedCompositeMetrics:
@@ -309,7 +337,9 @@ class TestNestedCompositeMetrics:
         returns = ProteusVariable(
             "item",
             {
-                "asset1": StochasticScalar([10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0]),
+                "asset1": StochasticScalar(
+                    [10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0]
+                ),
             },
         )
 
@@ -389,7 +419,9 @@ class TestNestedCompositeMetrics:
         # (mean/std) + mean
         ratio = RatioMetric(numerator=MeanMetric(), denominator=StdMetric())
         metric = SumMetric(metric1=ratio, metric2=MeanMetric())
-        value_func, grad_func = create_metric_calculator(metric, returns, ["asset1", "asset2"])
+        value_func, grad_func = create_metric_calculator(
+            metric, returns, ["asset1", "asset2"]
+        )
 
         weights = np.array([0.6, 0.4])
         analytical_grad = grad_func(weights)
@@ -402,9 +434,13 @@ class TestNestedCompositeMetrics:
             weights_plus[i] += epsilon
             weights_minus = weights.copy()
             weights_minus[i] -= epsilon
-            numerical_grad[i] = (value_func(weights_plus) - value_func(weights_minus)) / (2 * epsilon)
+            numerical_grad[i] = (
+                value_func(weights_plus) - value_func(weights_minus)
+            ) / (2 * epsilon)
 
-        np.testing.assert_allclose(analytical_grad, numerical_grad, rtol=1e-5, atol=1e-8)
+        np.testing.assert_allclose(
+            analytical_grad, numerical_grad, rtol=1e-5, atol=1e-8
+        )
 
 
 class TestCompositeMetricsInOptimization:
@@ -415,14 +451,20 @@ class TestCompositeMetricsInOptimization:
         returns = ProteusVariable(
             "item",
             {
-                "low_sharpe": StochasticScalar([0.05, 0.06, 0.04, 0.05, 0.06]),  # Mean ~0.052, Std ~0.008
-                "high_sharpe": StochasticScalar([0.10, 0.12, 0.08, 0.10, 0.12]),  # Mean ~0.104, Std ~0.016
+                "low_sharpe": StochasticScalar(
+                    [0.05, 0.06, 0.04, 0.05, 0.06]
+                ),  # Mean ~0.052, Std ~0.008
+                "high_sharpe": StochasticScalar(
+                    [0.10, 0.12, 0.08, 0.10, 0.12]
+                ),  # Mean ~0.104, Std ~0.016
             },
         )
 
         # Sharpe ratio: mean / std
         metric = RatioMetric(numerator=MeanMetric(), denominator=StdMetric())
-        objective = ObjectiveSpec(objective_value=returns, metric=metric, direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=metric, direction="maximize"
+        )
 
         opt_input = OptimizationInput(
             item_ids=["low_sharpe", "high_sharpe"],
@@ -439,7 +481,10 @@ class TestCompositeMetricsInOptimization:
         assert result.success
         assert result.optimal_shares is not None
         # high_sharpe has same ratio (both ~6.5) but let's just verify it optimizes
-        assert result.optimal_shares["low_sharpe"] + result.optimal_shares["high_sharpe"] <= 200.0 + 1e-6
+        assert (
+            result.optimal_shares["low_sharpe"] + result.optimal_shares["high_sharpe"]
+            <= 200.0 + 1e-6
+        )
 
     def test_minimize_risk_adjusted_return(self):
         """Test optimization with mean - 2*std objective (risk-adjusted return)."""
@@ -447,14 +492,18 @@ class TestCompositeMetricsInOptimization:
             "item",
             {
                 "safe": StochasticScalar([0.05, 0.051, 0.049, 0.050, 0.051]),  # Low vol
-                "volatile": StochasticScalar([0.05, 0.10, 0.00, 0.05, 0.10]),  # High vol
+                "volatile": StochasticScalar(
+                    [0.05, 0.10, 0.00, 0.05, 0.10]
+                ),  # High vol
             },
         )
 
         # Risk-adjusted: mean - std (qualitatively similar to mean - 2*std)
         # Higher is better, so maximize
         metric = DifferenceMetric(metric1=MeanMetric(), metric2=StdMetric())
-        objective = ObjectiveSpec(objective_value=returns, metric=metric, direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=metric, direction="maximize"
+        )
 
         opt_input = OptimizationInput(
             item_ids=["safe", "volatile"],
@@ -472,15 +521,22 @@ class TestCompositeMetricsInOptimization:
         assert result.optimal_shares is not None
         # Both assets have positive mean-std, so may both max out at bounds
         # Just verify optimization succeeded
-        assert result.optimal_shares["safe"] + result.optimal_shares["volatile"] <= 200.0 + 1e-6
+        assert (
+            result.optimal_shares["safe"] + result.optimal_shares["volatile"]
+            <= 200.0 + 1e-6
+        )
 
     def test_nested_composite_in_optimization(self):
         """Test optimization with nested composite metric: (mean/std) + spreadvar."""
         returns = ProteusVariable(
             "item",
             {
-                "asset1": StochasticScalar([0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20]),
-                "asset2": StochasticScalar([0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10]),
+                "asset1": StochasticScalar(
+                    [0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20]
+                ),
+                "asset2": StochasticScalar(
+                    [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10]
+                ),
             },
         )
 
@@ -489,7 +545,9 @@ class TestCompositeMetricsInOptimization:
         top_tail = SpreadVarMetric(lower_percentile=70.0, upper_percentile=100.0)
         metric = SumMetric(metric1=ratio, metric2=top_tail)
 
-        objective = ObjectiveSpec(objective_value=returns, metric=metric, direction="maximize")
+        objective = ObjectiveSpec(
+            objective_value=returns, metric=metric, direction="maximize"
+        )
 
         opt_input = OptimizationInput(
             item_ids=["asset1", "asset2"],
@@ -507,7 +565,10 @@ class TestCompositeMetricsInOptimization:
         assert result.optimal_shares is not None
         # Both assets contribute positively, may both max out at bounds
         # Just verify optimization succeeded with valid allocation
-        assert result.optimal_shares["asset1"] + result.optimal_shares["asset2"] <= 200.0 + 1e-6
+        assert (
+            result.optimal_shares["asset1"] + result.optimal_shares["asset2"]
+            <= 200.0 + 1e-6
+        )
 
 
 class TestCompositeMetricEdgeCases:
@@ -523,14 +584,20 @@ class TestCompositeMetricEdgeCases:
         returns = ProteusVariable(
             "item",
             {
-                "constant": StochasticScalar([0.05, 0.05, 0.05, 0.05, 0.05]),  # Zero std
-                "variable": StochasticScalar([0.03, 0.05, 0.07, 0.04, 0.06]),  # Non-zero std
+                "constant": StochasticScalar(
+                    [0.05, 0.05, 0.05, 0.05, 0.05]
+                ),  # Zero std
+                "variable": StochasticScalar(
+                    [0.03, 0.05, 0.07, 0.04, 0.06]
+                ),  # Non-zero std
             },
         )
 
         # mean/std ratio - constant asset will have std=0
         metric = RatioMetric(numerator=MeanMetric(), denominator=StdMetric())
-        value_func, _ = create_metric_calculator(metric, returns, ["constant", "variable"])
+        value_func, _ = create_metric_calculator(
+            metric, returns, ["constant", "variable"]
+        )
 
         # 100% constant asset: division by zero
         weights = np.array([1.0, 0.0])
@@ -545,7 +612,9 @@ class TestCompositeMetricEdgeCases:
         returns = ProteusVariable(
             "item",
             {
-                "asset1": StochasticScalar([-0.05, -0.03, -0.01, 0.01, 0.03]),  # Negative mean
+                "asset1": StochasticScalar(
+                    [-0.05, -0.03, -0.01, 0.01, 0.03]
+                ),  # Negative mean
             },
         )
 
@@ -557,14 +626,18 @@ class TestCompositeMetricEdgeCases:
         product = value_func(weights)
 
         # Mean is negative, std is positive, product should be negative
-        assert product < 0, "Product of negative mean and positive std should be negative"
+        assert product < 0, (
+            "Product of negative mean and positive std should be negative"
+        )
 
     def test_ratio_both_negative(self):
         """Test RatioMetric when both numerator and denominator are negative."""
         returns = ProteusVariable(
             "item",
             {
-                "losses": StochasticScalar([-10.0, -8.0, -12.0, -9.0, -11.0]),  # Negative mean
+                "losses": StochasticScalar(
+                    [-10.0, -8.0, -12.0, -9.0, -11.0]
+                ),  # Negative mean
             },
         )
 
