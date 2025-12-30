@@ -17,7 +17,7 @@ FreqSevSims structure reminder:
 
 import numpy as np
 import pytest
-from optimizer import (
+from pop import (
     BoundsSpec,
     FreqSevConstraint,
     MeanMetric,

@@ -12,7 +12,7 @@ Tests cover:
 
 import numpy as np
 import pytest
-from optimizer import (
+from pop import (
     BoundsSpec,
     DifferenceMetric,
     MeanMetric,
@@ -25,7 +25,7 @@ from optimizer import (
     SumMetric,
     optimize,
 )
-from optimizer.transforms import create_metric_calculator
+from pop.transforms import create_metric_calculator
 from pal import StochasticScalar
 from pal.variables import ProteusVariable
 

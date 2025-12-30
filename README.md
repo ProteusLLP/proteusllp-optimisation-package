@@ -31,7 +31,7 @@ pip install -e /proteus-optimisation-package
 ## Quick Start
 
 ```python
-from optimizer import (
+from pop import (
     ObjectiveSpec, OptimizationInput, SimpleConstraint,
     MeanMetric, StdMetric, optimize
 )

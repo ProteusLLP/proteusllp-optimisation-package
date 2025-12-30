@@ -43,7 +43,7 @@ pdm run <command>  # Run command in PDM environment
 ## Verify Installation
 
 ```python
-from optimizer import ObjectiveSpec, OptimizationInput
+from pop import ObjectiveSpec, OptimizationInput
 from pal import StochasticScalar
 
 print("Proteus Optimisation Package (POP) installed successfully!")

@@ -8,8 +8,8 @@ Validates that Mean, Std, and SpreadVar metrics:
 
 import numpy as np
 import pytest
-from optimizer import MeanMetric, SpreadVarMetric, StdMetric
-from optimizer.transforms import create_metric_calculator
+from pop import MeanMetric, SpreadVarMetric, StdMetric
+from pop.transforms import create_metric_calculator
 from pal import StochasticScalar
 from pal.variables import ProteusVariable
 

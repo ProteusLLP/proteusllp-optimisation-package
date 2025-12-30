@@ -33,7 +33,7 @@ Available Metrics:
   (e.g., Sharpe ratio = RatioMetric(MeanMetric(), StdMetric()))
 
 Example Usage:
-    from optimizer import (
+    from pop import (
         ObjectiveSpec, OptimizationInput, MeanMetric, optimize
     )
     from pal.variables import ProteusVariable

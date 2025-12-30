@@ -6,7 +6,7 @@ variation scenarios.
 
 import numpy as np
 import pytest
-from optimizer import (
+from pop import (
     BoundsSpec,
     ConstraintVariation,
     EfficientFrontierInput,

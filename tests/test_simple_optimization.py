@@ -5,7 +5,7 @@ constraints, and objectives without FreqSev complexity.
 """
 
 import pytest
-from optimizer import (
+from pop import (
     BoundsSpec,
     MeanMetric,
     ObjectiveSpec,

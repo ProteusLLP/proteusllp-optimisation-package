@@ -5,7 +5,7 @@ serialization/deserialization without running actual optimizations.
 """
 
 import pytest
-from optimizer import (
+from pop import (
     BoundsSpec,
     ConstraintVariation,
     DifferenceMetric,

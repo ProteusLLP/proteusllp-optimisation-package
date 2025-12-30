@@ -13,8 +13,8 @@ The distinction from test_metric_calculations.py:
 """
 
 import numpy as np
-from optimizer import MeanMetric, SpreadVarMetric, StdMetric
-from optimizer.transforms import create_metric_calculator
+from pop import MeanMetric, SpreadVarMetric, StdMetric
+from pop.transforms import create_metric_calculator
 from pal import StochasticScalar
 from pal.variables import ProteusVariable
 

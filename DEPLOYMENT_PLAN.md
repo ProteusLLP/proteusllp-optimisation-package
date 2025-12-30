@@ -269,8 +269,8 @@ pip install proteusllp-optimisation-package
 
 ```python
 from pal import StochasticScalar
-from optimizer import ObjectiveSpec, OptimizationInput, optimize
-from optimizer.config import OptimizationDirection, MetricType
+from pop import ObjectiveSpec, OptimizationInput, optimize
+from pop.config import OptimizationDirection, MetricType
 
 # Create portfolio items
 items = [
@@ -339,7 +339,7 @@ python -c "import optimizer; print(optimizer.__version__)"
 # Should show: 0.1.0
 
 # Test basic functionality
-python -c "from optimizer import ObjectiveSpec, OptimizationDirection, MetricType; print('✓ Import successful')"
+python -c "from pop import ObjectiveSpec, OptimizationDirection, MetricType; print('✓ Import successful')"
 ```
 
 ---
@@ -541,8 +541,8 @@ pip install proteusllp-optimisation-package
 
 ```python
 from pal import StochasticScalar
-from optimizer import ObjectiveSpec, OptimizationInput, optimize
-from optimizer.config import OptimizationDirection, MetricType
+from pop import ObjectiveSpec, OptimizationInput, optimize
+from pop.config import OptimizationDirection, MetricType
 
 # Create portfolio items
 items = [
