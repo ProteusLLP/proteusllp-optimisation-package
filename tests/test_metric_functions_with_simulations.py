@@ -318,8 +318,7 @@ class TestSpreadVarCalculatorAgainstSimulations:
             expected_spreadvar,
             rtol=1e-10,
             err_msg=(
-                "SpreadVar bottom tail calculation doesn't match "
-                "manual computation"
+                "SpreadVar bottom tail calculation doesn't match manual computation"
             ),
         )
 
@@ -365,8 +364,7 @@ class TestSpreadVarCalculatorAgainstSimulations:
             expected_spreadvar,
             rtol=1e-10,
             err_msg=(
-                "SpreadVar middle range calculation doesn't match "
-                "manual computation"
+                "SpreadVar middle range calculation doesn't match manual computation"
             ),
         )
 

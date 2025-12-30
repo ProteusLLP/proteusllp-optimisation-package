@@ -316,9 +316,7 @@ def process_scipy_result(
         objective_value = objective_value * optimization_input._obj_scale
 
     # Evaluate all constraints at optimal solution (returns scaled results)
-    constraint_results = _evaluate_constraints(
-        optimization_input, optimal_weights
-    )
+    constraint_results = _evaluate_constraints(optimization_input, optimal_weights)
 
     # Unscale constraint results if autoscaling was applied
     if optimization_input._constraint_scales is not None:

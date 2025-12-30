@@ -365,8 +365,7 @@ class FreqSevConstraint(BaseModel):
     constraint_value: ProteusVariable = Field(
         ...,
         description=(
-            "ProteusVariable containing FreqSevSims data for "
-            "OEP (occurrence) analysis"
+            "ProteusVariable containing FreqSevSims data for OEP (occurrence) analysis"
         ),
     )
 
@@ -560,9 +559,7 @@ class OptimizationInput(BaseModel):
 
         # Workaround: Manually extract effective simulation counts
         # since PAL's n_sims is unreliable
-        def get_effective_n_sims(
-            pv: ProteusVariable, expected_type: str
-        ) -> list[int]:
+        def get_effective_n_sims(pv: ProteusVariable, expected_type: str) -> list[int]:
             """Extract all simulation counts from a ProteusVariable."""
             return [
                 len(pv[item_id].values)
@@ -841,11 +838,11 @@ class OptimizationInput(BaseModel):
                         orig_share = self.current_shares[item_id]
                         scale = share_scales[item_id]
                         print(
-                        f"  ⚠️  {item_id}: "
-                        f"orig={orig_share:.4f}, "
-                        f"scaled={share:.4f}, "
-                        f"bounds=[{bounds.lower:.4f}, "
-                        f"{bounds.upper:.4f}]"
+                            f"  ⚠️  {item_id}: "
+                            f"orig={orig_share:.4f}, "
+                            f"scaled={share:.4f}, "
+                            f"bounds=[{bounds.lower:.4f}, "
+                            f"{bounds.upper:.4f}]"
                         )
                         infeasible_count += 1
             if infeasible_count == 0:

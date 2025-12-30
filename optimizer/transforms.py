@@ -485,10 +485,7 @@ def create_freqsev_std(
             # Chain rule: d(std)/d(weight) =
             #   d(std)/d(occurrence) * d(occurrence)/d(weight)
             # d(std)/d(occurrence_i) = (occurrence_i - mean) / std
-            gradient[i] = (
-                np.mean((occ_values - mean_occ) * grad_occurrence)
-                / std_occ
-            )
+            gradient[i] = np.mean((occ_values - mean_occ) * grad_occurrence) / std_occ
 
         return gradient
 
