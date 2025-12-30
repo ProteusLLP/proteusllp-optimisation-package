@@ -44,7 +44,7 @@ security:
 
 .PHONY: deadcode
 deadcode:
-	pdm run vulture optimizer
+	pdm run vulture optimizer .vulture_whitelist.py
 
 # Note: typecheck temporarily excluded from static-analysis due to PAL library's dynamic typing.
 # PAL uses runtime-added attributes (.occurrence, .sim_index, .n_sims) that appear as Unknown
