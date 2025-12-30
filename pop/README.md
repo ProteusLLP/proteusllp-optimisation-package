@@ -1,6 +1,6 @@
-# Optimizer Package Documentation
+# POP Package Documentation
 
-The `optimizer` package provides a domain-agnostic, metric-centric optimization framework built on top of PAL (Proteus Analytics Library). It enables portfolio optimization, risk analysis, and any stochastic optimization problem using a clean, type-safe API.
+The `pop` package provides a domain-agnostic, metric-centric optimization framework built on top of PAL (Proteus Analytics Library). It enables portfolio optimization, risk analysis, and any stochastic optimization problem using a clean, type-safe API.
 
 ## 📦 Package Overview
 
