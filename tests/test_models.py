@@ -5,7 +5,9 @@ serialization/deserialization without running actual optimizations.
 """
 
 import pytest
-from optimizer import (
+from pal import StochasticScalar
+from pal.variables import ProteusVariable
+from pop import (
     BoundsSpec,
     ConstraintVariation,
     DifferenceMetric,
@@ -21,8 +23,6 @@ from optimizer import (
     StdMetric,
     SumMetric,
 )
-from pal import StochasticScalar
-from pal.variables import ProteusVariable
 from pydantic import ValidationError
 
 

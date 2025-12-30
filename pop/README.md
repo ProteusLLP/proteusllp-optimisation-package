@@ -586,7 +586,7 @@ print(f"Generated {result.n_successful}/{len(result.optimization_results)} succe
 
 ### Basic Optimization
 ```python
-from optimizer import (
+from pop import (
     OptimizationInput, ObjectiveSpec, SimpleConstraint,
     MeanMetric, StdMetric, BoundsSpec, optimize
 )
@@ -638,7 +638,7 @@ if result.success:
 
 ### Composite Metrics (Sharpe Ratio)
 ```python
-from optimizer import RatioMetric, MeanMetric, StdMetric
+from pop import RatioMetric, MeanMetric, StdMetric
 
 # Define Sharpe-like ratio
 sharpe = RatioMetric(
@@ -655,7 +655,7 @@ objective = ObjectiveSpec(
 
 ### FreqSev Constraints
 ```python
-from optimizer import FreqSevConstraint
+from pop import FreqSevConstraint
 from pal import FreqSevSims
 import numpy as np
 

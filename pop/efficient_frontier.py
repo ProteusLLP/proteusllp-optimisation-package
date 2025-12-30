@@ -29,7 +29,7 @@ def generate_efficient_frontier(
         one for each point on the frontier.
 
     Example:
-        >>> from optimizer import (
+        >>> from pop import (
         ...     EfficientFrontierInput, ConstraintVariation,
         ...     OptimizationInput, SimpleConstraint
         ... )

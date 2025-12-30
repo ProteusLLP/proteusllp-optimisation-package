@@ -16,7 +16,7 @@
 proteus-optimisation-package/
 ├── .devcontainer/            # Devcontainer configuration
 ├── .github/                  # CI/CD workflows
-├── optimizer/                # Main package source
+├── pop/                # Main package source
 │   ├── models.py            # Pydantic models
 │   ├── config.py            # Configuration constants
 │   ├── scipy_interface.py   # Optimization interface
@@ -65,8 +65,8 @@ from pal import StochasticScalar, FreqSevSims
 from pal.variables import ProteusVariable
 
 # Optimizer imports (when installed as package)
-from optimizer import ObjectiveSpec, OptimizationInput, OptimizationResult
-from optimizer.config import OptimizationDirection, MetricType
+from pop import ObjectiveSpec, OptimizationInput, OptimizationResult
+from pop.config import OptimizationDirection, MetricType
 ```
 
 ## 🚀 Current Implementation Status

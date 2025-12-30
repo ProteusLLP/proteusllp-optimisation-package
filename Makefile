@@ -20,19 +20,19 @@ help:
 # Static analysis targets
 .PHONY: lint
 lint:
-	pdm run ruff check optimizer tests examples
+	pdm run ruff check pop tests examples
 
 .PHONY: lint-fix
 lint-fix:
-	pdm run ruff check --fix optimizer tests
+	pdm run ruff check --fix pop tests
 
 .PHONY: format
 format:
-	pdm run ruff format optimizer tests examples
+	pdm run ruff format pop tests examples
 
 .PHONY: format-check
 format-check:
-	pdm run ruff format --check optimizer tests examples
+	pdm run ruff format --check pop tests examples
 
 .PHONY: typecheck
 typecheck:
@@ -40,11 +40,11 @@ typecheck:
 
 .PHONY: security
 security:
-	pdm run bandit -r optimizer
+	pdm run bandit -r pop
 
 .PHONY: deadcode
 deadcode:
-	pdm run vulture optimizer .vulture_whitelist.py
+	pdm run vulture pop .vulture_whitelist.py
 
 # Note: typecheck temporarily excluded from static-analysis due to PAL library's dynamic typing.
 # PAL uses runtime-added attributes (.occurrence, .sim_index, .n_sims) that appear as Unknown
@@ -58,7 +58,7 @@ static-analysis: lint format-check security deadcode
 # Testing targets
 .PHONY: test
 test:
-	pdm run pytest tests/ -v --cov=optimizer --cov-report=term-missing --cov-report=xml
+	pdm run pytest tests/ -v --cov=pop --cov-report=term-missing --cov-report=xml
 
 # Combined check target
 .PHONY: check

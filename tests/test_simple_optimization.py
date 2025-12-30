@@ -5,7 +5,9 @@ constraints, and objectives without FreqSev complexity.
 """
 
 import pytest
-from optimizer import (
+from pal import StochasticScalar
+from pal.variables import ProteusVariable
+from pop import (
     BoundsSpec,
     MeanMetric,
     ObjectiveSpec,
@@ -15,8 +17,6 @@ from optimizer import (
     StdMetric,
     optimize,
 )
-from pal import StochasticScalar
-from pal.variables import ProteusVariable
 
 
 class TestBasicOptimization:

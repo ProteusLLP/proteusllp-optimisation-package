@@ -17,7 +17,9 @@ FreqSevSims structure reminder:
 
 import numpy as np
 import pytest
-from optimizer import (
+from pal import FreqSevSims, StochasticScalar
+from pal.variables import ProteusVariable
+from pop import (
     BoundsSpec,
     FreqSevConstraint,
     MeanMetric,
@@ -27,8 +29,6 @@ from optimizer import (
     StdMetric,
     optimize,
 )
-from pal import FreqSevSims, StochasticScalar
-from pal.variables import ProteusVariable
 
 
 class TestFreqSevBasicConstraints:

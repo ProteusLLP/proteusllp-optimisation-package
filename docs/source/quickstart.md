@@ -6,8 +6,8 @@ This guide will get you started with the Proteus Optimisation Package (POP) in m
 
 ```python
 from pal import StochasticScalar
-from optimizer import ObjectiveSpec, OptimizationInput, scipy_optimize
-from optimizer.config import MetricType, OptimizationDirection
+from pop import ObjectiveSpec, OptimizationInput, scipy_optimize
+from pop.config import MetricType, OptimizationDirection
 
 # Create stochastic variables for two assets
 returns_a = StochasticScalar(mean=0.08, std=0.15, size=10000)
@@ -49,7 +49,7 @@ print(f"Message: {result.message}")
 ## Computing Efficient Frontier
 
 ```python
-from optimizer.efficient_frontier import compute_efficient_frontier
+from pop.efficient_frontier import compute_efficient_frontier
 
 # Compute efficient frontier
 frontier = compute_efficient_frontier(
