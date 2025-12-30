@@ -602,8 +602,9 @@ class TestCompositeMetricEdgeCases:
         # 100% constant asset: division by zero
         weights = np.array([1.0, 0.0])
 
-        # Currently raises ZeroDivisionError - this is expected behavior
-        # Optimizer would fail at this point, which is appropriate for an undefined metric
+        # Currently raises ZeroDivisionError - this is expected
+        # behavior. Optimizer would fail at this point, which is
+        # appropriate for an undefined metric
         with pytest.raises(ZeroDivisionError):
             value_func(weights)
 

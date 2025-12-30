@@ -53,10 +53,12 @@ class TestFreqSevBasicConstraints:
             },
         )
 
-        # Create FreqSevSims for losses - MUST have IDENTICAL sim_index for all assets
-        # 5 simulations: Sim 0: 0 events, Sim 1: 1 event, Sim 2: 2 events, Sim 3: 1 event, Sim 4: 1 event
+        # Create FreqSevSims for losses - MUST have IDENTICAL
+        # sim_index for all assets
+        # 5 sims: Sim 0: 0 events, Sim 1: 1 event, Sim 2: 2 events,
+        # Sim 3: 1 event, Sim 4: 1 event
         n_sims = 5
-        sim_index = np.array([1, 2, 2, 3, 4], dtype=int)  # SAME for all assets!
+        sim_index = np.array([1, 2, 2, 3, 4], dtype=int)  # SAME!
 
         # Asset1 losses: lower severity per event
         values1 = np.array([500.0, 700.0, 600.0, 800.0, 550.0], dtype=float)
@@ -101,7 +103,8 @@ class TestFreqSevBasicConstraints:
 
         result = optimize(opt_input.preprocess())
 
-        # Check that optimization ran (may not fully converge if constraint is very tight)
+        # Check that optimization ran (may not fully converge if
+        # constraint is very tight)
         assert result.optimal_shares is not None
 
         # Check that constraint was evaluated properly
@@ -112,10 +115,12 @@ class TestFreqSevBasicConstraints:
         assert constraint_result.actual_value > 0, (
             f"Expected non-zero loss, got {constraint_result.actual_value}"
         )
-        # With tight constraint, we allow small violations due to numerical precision
+        # With tight constraint, allow small violations due to
+        # numerical precision
         tolerance = 1e-4
         assert constraint_result.actual_value <= 1500.0 + tolerance, (
-            f"Loss {constraint_result.actual_value} exceeds threshold by more than tolerance"
+            f"Loss {constraint_result.actual_value} exceeds "
+            f"threshold by more than tolerance"
         )
 
     def test_freqsev_mean_cap_constraint(self):
@@ -533,7 +538,8 @@ class TestFreqSevIdenticalAndSimilarLosses:
         # Optimizer will max out at constraint threshold if it's binding
         constraint_result = result.constraint_results[0]
         tolerance = 1e-3
-        # Constraint is tight at threshold since losses are identical and above threshold mean
+        # Constraint is tight at threshold since losses are
+        # identical and above threshold mean
         assert constraint_result.actual_value <= 1300.0 + tolerance
 
     def test_very_similar_losses(self):
@@ -720,7 +726,9 @@ class TestFreqSevEdgeCases:
 
 
 class TestFreqSevFailureCases:
-    """Test that optimizer handles infeasible/conflicting FreqSev constraints gracefully."""
+    """Test optimizer handles infeasible/conflicting FreqSev
+    constraints gracefully.
+    """
 
     def test_conflicting_freqsev_constraints(self):
         """Test that conflicting FreqSev constraints are detected."""

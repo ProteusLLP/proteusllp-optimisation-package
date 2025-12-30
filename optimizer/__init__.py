@@ -6,18 +6,24 @@ risk analysis, and other stochastic optimization problems.
 
 Key Components:
 - ObjectiveSpec: Define what to optimize using PAL ProteusVariable
-- SimpleConstraint: Define portfolio-level constraints (auto-converts FreqSevSims → aggregate)
-- FreqSevConstraint: Define OEP-based constraints preserving frequency-severity structure
-  (operates on max event loss per simulation, not aggregate)
+- SimpleConstraint: Define portfolio-level constraints
+  (auto-converts FreqSevSims → aggregate)
+- FreqSevConstraint: Define OEP-based constraints preserving
+  frequency-severity structure (operates on max event loss per
+  simulation, not aggregate)
 - OptimizationInput: Complete optimization problem specification
 - OptimizationResult: Comprehensive optimization results
-- EfficientFrontierInput: Specify constraint variations for efficient frontier generation
-- EfficientFrontierResult: Collection of optimization results across constraint variations
+- EfficientFrontierInput: Specify constraint variations for
+  efficient frontier generation
+- EfficientFrontierResult: Collection of optimization results
+  across constraint variations
 - Configuration: Optimization settings and constants
 
 Main Functions:
-- optimize(): Single-point optimization for given objective and constraints
-- generate_efficient_frontier(): Multi-point optimization by varying constraint thresholds
+- optimize(): Single-point optimization for given objective and
+  constraints
+- generate_efficient_frontier(): Multi-point optimization by varying
+  constraint thresholds
 
 Available Metrics:
 - MeanMetric: Expected value (use for return objectives, loss constraints)
@@ -50,7 +56,8 @@ Example Usage:
     # Create and run optimization (current_shares required)
     input_spec = OptimizationInput(
         item_ids=["item1", "item2"],
-        current_shares={"item1": 100.0, "item2": 200.0},  # Required: current allocations
+        # Required: current allocations
+        current_shares={"item1": 100.0, "item2": 200.0},
         objective=objective
     )
 

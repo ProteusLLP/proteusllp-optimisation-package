@@ -71,7 +71,8 @@ class TestBasicEfficientFrontier:
         )
 
         # Create efficient frontier input
-        # Vary risk from very low (0.008, nearly all safe) to high (0.025, nearly all risky)
+        # Vary risk from very low (0.008, nearly all safe) to high
+        # (0.025, nearly all risky)
         frontier_input = EfficientFrontierInput(
             base_optimization=base_opt,
             constraint_variations=[
@@ -114,7 +115,9 @@ class TestBasicEfficientFrontier:
             safe_weight = opt_result.optimal_shares["safe"]
 
             print(
-                f"\nPoint {idx}: risky={risky_weight:.4f}, safe={safe_weight:.4f}, sum={risky_weight + safe_weight:.4f}"
+                f"\nPoint {idx}: risky={risky_weight:.4f}, "
+                f"safe={safe_weight:.4f}, "
+                f"sum={risky_weight + safe_weight:.4f}"
             )
 
             risky_weights.append(risky_weight)
@@ -133,17 +136,20 @@ class TestBasicEfficientFrontier:
         # Validate efficient frontier properties
         # Note: Since both assets have positive returns and we're maximizing,
         # the optimizer will allocate as much as possible within bounds.
-        # The efficient frontier is created by varying the risk constraint.
+        # The efficient frontier is created by varying the risk
+        # constraint.
 
-        # 1. As risk constraint relaxes, allocated amount should increase (more risky asset)
+        # 1. As risk constraint relaxes, allocated amount should
+        # increase (more risky asset)
         safe_weights = [
             opt_result.optimal_shares["safe"]
             for opt_result in result.optimization_results
         ]
         for i in range(1, len(safe_weights)):
-            # Safe weight should increase as we allow more risk (buy more)
+            # Safe weight should increase as we allow more risk
             assert safe_weights[i] >= safe_weights[i - 1] - 1e-4, (
-                f"Total allocation should increase: {safe_weights[i]} >= {safe_weights[i - 1]}"
+                f"Total allocation should increase: "
+                f"{safe_weights[i]} >= {safe_weights[i - 1]}"
             )
 
         # 2. With tighter risk constraints, should allocate only to safe asset
@@ -154,7 +160,8 @@ class TestBasicEfficientFrontier:
         # 3. Returns should increase as we relax risk constraint
         for i in range(1, len(returns_list)):
             assert returns_list[i] >= returns_list[i - 1] - 1e-6, (
-                f"Return should increase along frontier: {returns_list[i]} >= {returns_list[i - 1]}"
+                f"Return should increase along frontier: "
+                f"{returns_list[i]} >= {returns_list[i - 1]}"
             )
 
         print("\nEfficient Frontier Results:")

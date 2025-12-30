@@ -80,7 +80,10 @@ class SpreadVarMetric(BaseModel):
 
 
 class RatioMetric(BaseModel):
-    """Ratio of two metrics on the same variable (e.g., mean/std for Sharpe-like ratio)."""
+    """Ratio of two metrics on the same variable.
+
+    Example: mean/std for Sharpe-like ratio.
+    """
 
     type: str = Field(default="ratio", description="Metric type")
     numerator: "Metric" = Field(description="Numerator metric")
@@ -113,7 +116,10 @@ class SumMetric(BaseModel):
 
 
 class DifferenceMetric(BaseModel):
-    """Difference of two metrics on the same variable (e.g., spreadvar - mean for deviation)."""
+    """Difference of two metrics on the same variable.
+
+    Example: spreadvar - mean for deviation.
+    """
 
     type: str = Field(default="difference", description="Metric type")
     metric1: "Metric" = Field(description="Metric to subtract from")
@@ -167,13 +173,17 @@ class BoundsSpec(BaseModel):
 class ObjectiveSpec(BaseModel):
     """Optimization objectives using PAL ProteusVariable.
 
-    Maintains item-level structure with ProteusVariable containing StochasticScalar data.
-    Automatically converts other PAL data types to StochasticScalar if needed.
+    Maintains item-level structure with ProteusVariable containing
+    StochasticScalar data. Automatically converts other PAL data
+    types to StochasticScalar if needed.
     """
 
     objective_value: ProteusVariable = Field(
         ...,
-        description="ProteusVariable with StochasticScalar data for each item (auto-converted if needed)",
+        description=(
+            "ProteusVariable with StochasticScalar data for each "
+            "item (auto-converted if needed)"
+        ),
     )
 
     direction: str = Field(..., description="Optimization direction")
@@ -205,13 +215,17 @@ class ObjectiveSpec(BaseModel):
                     conversion_needed = True
                     converted_values[item_id] = item_data.sum()  # type: ignore
                 else:
-                    # Unknown type - raise error instead of attempting conversion
+                    # Unknown type - raise error instead of conversion
+                    # type: ignore
+                    type_name = type(item_data).__name__
                     raise ValueError(
-                        f"Unknown data type for item '{item_id}': {type(item_data).__name__}. "  # type: ignore
-                        f"Expected StochasticScalar, FreqSevSims, or ProteusVariable."
+                        f"Unknown data type for item '{item_id}': "
+                        f"{type_name}. Expected StochasticScalar, "
+                        f"FreqSevSims, or ProteusVariable."
                     )
 
-            # Create new ProteusVariable with converted data if conversions occurred
+            # Create new ProteusVariable with converted data
+            # if conversions occurred
             if conversion_needed:
                 return ProteusVariable(v.dim_name, converted_values)  # type: ignore
 
@@ -231,13 +245,17 @@ class ObjectiveSpec(BaseModel):
 class SimpleConstraint(BaseModel):
     """Simple constraints using PAL ProteusVariable.
 
-    Maintains item-level structure with ProteusVariable containing StochasticScalar data.
-    Automatically converts other PAL data types to StochasticScalar if needed.
+    Maintains item-level structure with ProteusVariable containing
+    StochasticScalar data. Automatically converts other PAL data
+    types to StochasticScalar if needed.
     """
 
     constraint_value: ProteusVariable = Field(
         ...,
-        description="ProteusVariable with StochasticScalar data for each item (auto-converted if needed)",
+        description=(
+            "ProteusVariable with StochasticScalar data for each "
+            "item (auto-converted if needed)"
+        ),
     )
 
     threshold: float = Field(..., description="Constraint threshold value")
@@ -273,13 +291,17 @@ class SimpleConstraint(BaseModel):
                     conversion_needed = True
                     converted_values[item_id] = item_data.sum()  # type: ignore
                 else:
-                    # Unknown type - raise error instead of attempting conversion
+                    # Unknown type - raise error instead of conversion
+                    # type: ignore
+                    type_name = type(item_data).__name__
                     raise ValueError(
-                        f"Unknown data type for item '{item_id}': {type(item_data).__name__}. "  # type: ignore
-                        f"Expected StochasticScalar, FreqSevSims, or ProteusVariable."
+                        f"Unknown data type for item '{item_id}': "
+                        f"{type_name}. Expected StochasticScalar, "
+                        f"FreqSevSims, or ProteusVariable."
                     )
 
-            # Create new ProteusVariable with converted data if conversions occurred
+            # Create new ProteusVariable with converted data
+            # if conversions occurred
             if conversion_needed:
                 return ProteusVariable(v.dim_name, converted_values)  # type: ignore
 
@@ -320,7 +342,10 @@ class FreqSevConstraint(BaseModel):
 
     constraint_value: ProteusVariable = Field(
         ...,
-        description="ProteusVariable containing FreqSevSims data for OEP (occurrence) analysis",
+        description=(
+            "ProteusVariable containing FreqSevSims data for "
+            "OEP (occurrence) analysis"
+        ),
     )
 
     threshold: float = Field(..., description="Constraint threshold value")
@@ -342,8 +367,9 @@ class FreqSevConstraint(BaseModel):
         for item_id, item_data in v.values.items():  # type: ignore
             if not isinstance(item_data, FreqSevSims):
                 raise ValueError(
-                    f"FreqSevConstraint requires FreqSevSims data for item '{item_id}', "
-                    f"got {type(item_data).__name__}. "  # type: ignore
+                    f"FreqSevConstraint requires FreqSevSims data "
+                    f"for item '{item_id}', got "
+                    f"{type(item_data).__name__}. "  # type: ignore
                     f"Use SimpleConstraint for other data types."
                 )
 
@@ -438,10 +464,12 @@ class OptimizationInput(BaseModel):
         4. Finalize preprocessing state
 
         Returns:
-            New OptimizationInput with processed objective, constraints, bounds, and shares
+            New OptimizationInput with processed objective, constraints,
+            bounds, and shares
 
         Raises:
-            ValueError: If preprocessing fails at any step with detailed error message
+            ValueError: If preprocessing fails at any step with
+            detailed error message
         """
         try:
             # Step 1: Check Simulation Consistency
@@ -486,22 +514,29 @@ class OptimizationInput(BaseModel):
             )
             if not is_valid:
                 raise ValueError(
-                    f"FreqSevSims validation failed in freqsev_constraint[{i}]: {error_msg}"
+                    f"FreqSevSims validation failed in "
+                    f"freqsev_constraint[{i}]: {error_msg}"
                 )
 
-        # TODO: If PAL ProteusVariable.n_sims was correctly implemented,
-        # this could be simplified to just:
+        # TODO: If PAL ProteusVariable.n_sims was correctly
+        # implemented, this could be simplified to just:
         #
         # all_pvs = ([self.objective.objective_value] +
-        #           [c.constraint_value for c in self.simple_constraints] +
-        #           [c.constraint_value for c in self.freqsev_constraints])
-        # effective_n_sims = [pv.n_sims for pv in all_pvs for _ in pv.values]
+        #   [c.constraint_value for c in self.simple_constraints] +
+        #   [c.constraint_value for c in self.freqsev_constraints])
+        # effective_n_sims = [pv.n_sims for pv in all_pvs
+        #   for _ in pv.values]
         # non_one_sims = {n for n in effective_n_sims if n != 1}
         # if len(non_one_sims) > 1:
-        #     raise ValueError(f"Inconsistent simulation counts: {sorted(set(effective_n_sims))}")
+        #   raise ValueError(
+        #     f"Inconsistent simulation counts: "
+        #     f"{sorted(set(effective_n_sims))}")
 
-        # Workaround: Manually extract effective simulation counts since PAL's n_sims is unreliable
-        def get_effective_n_sims(pv: ProteusVariable, expected_type: str) -> list[int]:
+        # Workaround: Manually extract effective simulation counts
+        # since PAL's n_sims is unreliable
+        def get_effective_n_sims(
+            pv: ProteusVariable, expected_type: str
+        ) -> list[int]:
             """Extract all simulation counts from a ProteusVariable."""
             return [
                 len(pv[item_id].values)
@@ -533,7 +568,8 @@ class OptimizationInput(BaseModel):
         non_one_sims = {n for n in effective_n_sims if n != 1}
         if len(non_one_sims) > 1:
             raise ValueError(
-                f"Simulation count mismatch across variables: {sorted(set(effective_n_sims))}"
+                f"Simulation count mismatch across variables: "
+                f"{sorted(set(effective_n_sims))}"
             )
 
     def _align_objective(self) -> ObjectiveSpec:
@@ -611,8 +647,10 @@ class OptimizationInput(BaseModel):
 
         if unused_items:
             warnings.warn(
-                f"Constraint has items {sorted(unused_items)} that are not in item_ids {sorted(self.item_ids)}. "
-                f"These items will be ignored. Did you mean to include them in item_ids?",
+                f"Constraint has items {sorted(unused_items)} that are "
+                f"not in item_ids {sorted(self.item_ids)}. "
+                f"These items will be ignored. Did you mean to include "
+                f"them in item_ids?",
                 UserWarning,
                 stacklevel=4,
             )
@@ -671,7 +709,8 @@ class OptimizationInput(BaseModel):
             if self.share_bounds and item_id in self.share_bounds:
                 bounds = self.share_bounds[item_id]
 
-                # Adjust to be within bounds (but only if bounds require positive values)
+                # Adjust to be within bounds
+                # (only if bounds require positive values)
                 if (
                     bounds.lower is not None
                     and bounds.lower > 1e-10
@@ -712,10 +751,12 @@ class OptimizationInput(BaseModel):
 
         # Step 1: Calculate share scales (normalize each share to 1.0)
         # Scaling threshold = 1.0:
-        #   - Shares ≤ 1.0: No scaling (scale=1.0, keep original value)
-        #     Rationale: Avoids tiny scale factors (e.g., share=1e-6 → scale=1e-6 → bounds/1e-6 = huge)
+        #   - Shares ≤ 1.0: No scaling (scale=1.0, keep original)
+        #     Rationale: Avoids tiny scale factors
+        #     (e.g., share=1e-6 → scale=1e-6 → bounds/1e-6 = huge)
         #   - Shares > 1.0: Normalize to 1.0 for numerical stability
-        #     Rationale: Brings large premiums (millions) down to O(1) for optimizer
+        #     Rationale: Brings large premiums (millions) down to
+        #     O(1) for optimizer
         share_scales = {}
         scaled_shares = {}
         near_zero_shares = []  # Track shares close to zero for warning
@@ -726,7 +767,8 @@ class OptimizationInput(BaseModel):
                 share_scales[item_id] = 1.0
                 scaled_shares[item_id] = share  # Keep original value
 
-                # Warn about shares very close to zero (may indicate initialization issue)
+                # Warn about shares very close to zero
+                # (may indicate initialization issue)
                 if abs(share) < 1e-6 and abs(share) > 0:
                     near_zero_shares.append((item_id, share))
             else:
@@ -737,14 +779,16 @@ class OptimizationInput(BaseModel):
         # Warn if any shares are suspiciously close to zero
         if near_zero_shares and verbose:
             print(
-                f"\n[Autoscaling] WARNING: {len(near_zero_shares)} shares are very small (< 1e-6):"
+                f"\n[Autoscaling] WARNING: {len(near_zero_shares)} "
+                f"shares are very small (< 1e-6):"
             )
             for item_id, share in near_zero_shares[:5]:  # Show first 5
                 print(f"  - {item_id}: {share:.2e}")
             if len(near_zero_shares) > 5:
                 print(f"  ... and {len(near_zero_shares) - 5} more")
             print(
-                "  These may cause numerical issues. Consider using _align_shares_with_items() first."
+                "  These may cause numerical issues. Consider using "
+                "_align_shares_with_items() first."
             )
 
         # Step 2: Scale bounds (divide by share scales)
@@ -771,7 +815,11 @@ class OptimizationInput(BaseModel):
                         orig_share = self.current_shares[item_id]
                         scale = share_scales[item_id]
                         print(
-                            f"  ⚠️  {item_id}: orig={orig_share:.4f}, scaled={share:.4f}, bounds=[{bounds.lower:.4f}, {bounds.upper:.4f}]"
+                        f"  ⚠️  {item_id}: "
+                        f"orig={orig_share:.4f}, "
+                        f"scaled={share:.4f}, "
+                        f"bounds=[{bounds.lower:.4f}, "
+                        f"{bounds.upper:.4f}]"
                         )
                         infeasible_count += 1
             if infeasible_count == 0:
@@ -811,21 +859,29 @@ class OptimizationInput(BaseModel):
 
         # Step 4: Objective and Constraint Scaling - DISABLED
         #
-        # IMPORTANT: Objective/constraint scaling is currently disabled because composite metrics
-        # like RatioMetric are scale-invariant (scaling the variable doesn't change the ratio).
-        # When we divide ProteusVariable by a scale, both numerator and denominator scale equally,
-        # so the ratio remains unchanged. This causes optimization to work on unscaled values.
+        # IMPORTANT: Objective/constraint scaling is currently
+        # disabled because composite metrics like RatioMetric are
+        # scale-invariant (scaling the variable doesn't change the
+        # ratio). When we divide ProteusVariable by a scale, both
+        # numerator and denominator scale equally, so the ratio
+        # remains unchanged. This causes optimization to work on
+        # unscaled values.
         #
-        # TODO: To properly implement metric-based scaling, add a method/property to Metric class:
-        #   - Metric.determine_scaling_factor(variable, item_ids) -> float
-        #   - Returns how the metric value scales when variable is scaled uniformly
+        # TODO: To properly implement metric-based scaling, add a
+        # method/property to Metric class:
+        #   - Metric.determine_scaling_factor(variable, item_ids)
+        #     -> float
+        #   - Returns how the metric value scales when variable is
+        #     scaled uniformly
         #   - Examples:
         #     * MeanMetric: returns 1.0 (scales linearly)
-        #     * RatioMetric: returns 0.0 (scale-invariant, num/den cancel)
+        #     * RatioMetric: returns 0.0 (scale-invariant,
+        #       num/den cancel)
         #     * ProductMetric: returns 2.0 (scales by scale²)
         #   - Then: effective_scale = base_value ** scaling_factor
         #
-        # For now, we only apply share scaling (Step 1-3) and skip objective/constraint scaling.
+        # For now, we only apply share scaling (Step 1-3) and skip
+        # objective/constraint scaling.
 
         obj_scale = 1.0  # No objective scaling
         constraint_scales = [1.0] * (
@@ -1027,12 +1083,16 @@ class EfficientFrontierInput(BaseModel):
                 unnamed_count = len([c for c in constraints if not c.name])
 
                 error_msg = (
-                    f"Constraint '{variation.constraint_name}' not found in "
-                    f"{variation.constraint_type} constraints. "
-                    f"Available named {variation.constraint_type} constraints: {available}."
+                    f"Constraint '{variation.constraint_name}' not "
+                    f"found in {variation.constraint_type} constraints. "
+                    f"Available named {variation.constraint_type} "
+                    f"constraints: {available}."
                 )
                 if unnamed_count > 0:
-                    error_msg += f" ({unnamed_count} unnamed {variation.constraint_type} constraints exist)"
+                    error_msg += (
+                        f" ({unnamed_count} unnamed "
+                        f"{variation.constraint_type} constraints exist)"
+                    )
                 raise ValueError(error_msg)
 
         # Check for duplicate (type, name) pairs in variations

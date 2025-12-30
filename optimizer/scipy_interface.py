@@ -24,7 +24,8 @@ from .transforms import constraint_wrapper, create_metric_calculator, objective_
 def optimize(optimization_input: OptimizationInput) -> OptimizationResult:
     """Main optimization entry point.
 
-    Transforms OptimizationInput (Pydantic) → scipy.optimize.minimize() → OptimizationResult
+    Transforms OptimizationInput (Pydantic) →
+    scipy.optimize.minimize() → OptimizationResult
 
     Args:
         optimization_input: Complete optimization problem specification
@@ -51,7 +52,8 @@ def optimize(optimization_input: OptimizationInput) -> OptimizationResult:
         # Step 1: Validate input readiness
         if not optimization_input.is_preprocessed:
             raise ValueError(
-                "OptimizationInput is not ready for optimization. Please call preprocess() first."
+                "OptimizationInput is not ready for optimization. "
+                "Please call preprocess() first."
             )
 
         # Get config early to use verbose flag
@@ -138,9 +140,8 @@ def optimize(optimization_input: OptimizationInput) -> OptimizationResult:
                 iteration_data["count"] <= 5 or iteration_data["count"] % 10 == 0
             ):
                 print(
-                    f"  Iter {iteration_data['count']}: obj={obj_val:.8f}, |grad|={grad_norm:.8f}"
-                )
-
+                f"  Iter {iteration_data['count']}: "
+                f"obj={obj_val:.8f}, |grad|={grad_norm:.8f}"
         scipy_result = minimize(
             fun=scipy_objective,
             jac=scipy_obj_gradient,
@@ -149,29 +150,29 @@ def optimize(optimization_input: OptimizationInput) -> OptimizationResult:
             constraints=all_constraints,
             method="SLSQP",  # Sequential Least Squares Programming
             options={"maxiter": max_iter, "ftol": tolerances["ftol"], "disp": verbose},
-            tol=0.0001,  # Constraint tolerance - matches old optimizer for compatibility
-            callback=callback,
+        tol=0.0001,  # Constraint tolerance
+        callback=callback,
+    )
+
+    # Log summary if few iterations (only if verbose)
+    if verbose and iteration_data["count"] <= 3:
+        print(
+            f"\\n\u26a0\ufe0f  Optimization exited after only "
+            f"{iteration_data['count']} iterations"
         )
-
-        # Log summary if few iterations (only if verbose)
-        if verbose and iteration_data["count"] <= 3:
-            print(
-                f"\n⚠️  Optimization exited after only {iteration_data['count']} iterations"
-            )
-            print(
-                f"   Initial obj: {iteration_data['obj_values'][0] if iteration_data['obj_values'] else 'N/A':.8f}"
-            )
-            print(f"   Final obj: {scipy_result.fun:.8f}")
-            print(
-                f"   Initial |grad|: {iteration_data['grad_norms'][0] if iteration_data['grad_norms'] else 'N/A':.8f}"
-            )
-            if iteration_data["grad_norms"]:
-                print(f"   Final |grad|: {iteration_data['grad_norms'][-1]:.8f}")
-
-        # Step 7: Process results and evaluate constraints
-        optimization_time = time.time() - start_time
-
-        return process_scipy_result(
+        initial_obj = (
+            iteration_data['obj_values'][0]
+            if iteration_data['obj_values']
+            else 'N/A'
+        )
+        print(f"   Initial obj: {initial_obj:.8f}")
+        print(f"   Final obj: {scipy_result.fun:.8f}")
+        initial_grad = (
+            iteration_data['grad_norms'][0]
+            if iteration_data['grad_norms']
+            else 'N/A'
+        )
+        print(f"   Initial |grad|: {initial_grad:.8f}")
             scipy_result,
             optimization_input,
             optimization_time,
@@ -251,11 +252,13 @@ def process_scipy_result(
 
     Args:
         scipy_result: Result from scipy.optimize.minimize()
-        optimization_input: Original optimization problem specification (with scaling factors)
+        optimization_input: Original optimization problem
+        specification (with scaling factors)
         optimization_time: Total optimization time in seconds
 
     Returns:
-        OptimizationResult with optimal solution and constraint evaluations (unscaled to original units)
+        OptimizationResult with optimal solution and constraint
+        evaluations (unscaled to original units)
 
     Note:
         For maximization problems, we need to negate scipy_result.fun
@@ -264,10 +267,11 @@ def process_scipy_result(
         If autoscaling was applied during preprocessing, this function unscales:
         - optimal_shares: multiply by _share_scales
         - objective_value: multiply by _obj_scale (currently 1.0 - scaling disabled)
-        - constraint results: multiply by _constraint_scales (currently 1.0 - scaling disabled)
-
-        NOTE: Objective/constraint scaling is currently disabled due to scale-invariant
-        composite metrics (e.g., RatioMetric). The scaling factors exist but are set to 1.0.
+        - objective_value: multiply by _obj_scale
+          (currently 1.0 - scaling disabled)
+        - constraint results: multiply by _constraint_scales
+          (currently 1.0 - scaling disabled)
+        RatioMetric). The scaling factors exist but are set to 1.0.
     """
     # Extract optimal weights (still in scaled units)
     optimal_weights = scipy_result.x
@@ -294,8 +298,10 @@ def process_scipy_result(
     if optimization_input._obj_scale is not None:
         objective_value = objective_value * optimization_input._obj_scale
 
-    # Evaluate all constraints at optimal solution (returns scaled results) (returns scaled results)
-    constraint_results = _evaluate_constraints(optimization_input, optimal_weights)
+    # Evaluate all constraints at optimal solution
+    constraint_results = _evaluate_constraints(
+        optimization_input, optimal_weights
+    )
 
     # Unscale constraint results if autoscaling was applied
     if optimization_input._constraint_scales is not None:

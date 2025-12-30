@@ -78,12 +78,14 @@ def calculate_spreadvar_on_values(
     lower_percentile: float,
     upper_percentile: float,
 ) -> float:
-    """Calculate SpreadVar (mean of values in percentile range) for a 1D array.
+    """Calculate SpreadVar for a 1D array.
 
-    This is a shared helper used by both StochasticScalar and FreqSevSims spreadvar calculators.
+    Mean of values in percentile range. This is a shared helper used
+    by both StochasticScalar and FreqSevSims spreadvar calculators.
 
     Args:
-        values: 1D array of simulation values (e.g., portfolio returns or occurrence values)
+        values: 1D array of simulation values (e.g., portfolio
+        returns or occurrence values)
         lower_percentile: Lower percentile bound (0-100 scale)
         upper_percentile: Upper percentile bound (0-100 scale)
 
@@ -116,9 +118,10 @@ def calculate_spreadvar_gradient_on_matrix(
     lower_percentile: float,
     upper_percentile: float,
 ) -> np.ndarray:
-    """Calculate SpreadVar gradient using rank-based masking on a simulation matrix.
+    """Calculate SpreadVar gradient using rank-based masking.
 
-    This is a shared helper used by both StochasticScalar and FreqSevSims spreadvar calculators.
+    This is a shared helper used by both StochasticScalar and
+    FreqSevSims spreadvar calculators.
 
     Args:
         sim_matrix: 2D array [n_sims x n_items] of item simulations
@@ -306,8 +309,9 @@ def create_scalar_spreadvar(
         stoch_scalar = pal_variable.values[item_id]  # type: ignore
         if not isinstance(stoch_scalar, StochasticScalar):
             raise ValueError(
-                f"create_scalar_spreadvar expects StochasticScalar for item '{item_id}', "
-                f"got {type(stoch_scalar).__name__}"
+                f"create_scalar_spreadvar expects StochasticScalar "
+                f"for item '{item_id}', got "
+                f"{type(stoch_scalar).__name__}"
             )
         simulation_data[item_id] = stoch_scalar.values
 
@@ -370,10 +374,12 @@ def create_freqsev_mean(
 
     Uses analytical gradients via indicator approach:
     - Value: weight items → sum → occurrence → mean
-    - Gradient: create indicator where combined==max → multiply by original → aggregate → mean
+    - Gradient: create indicator where combined==max → multiply by
+      original → aggregate → mean
 
     Args:
-        freqsev_items: List of FreqSevSims objects (one per portfolio item)
+        freqsev_items: List of FreqSevSims objects
+        (one per portfolio item)
         item_ids: List of item identifiers (for error messages)
 
     Returns:
@@ -474,11 +480,15 @@ def create_freqsev_std(
             aggregated_contrib = contribution.aggregate()
 
             # Gradient of occurrence w.r.t. weights
-            grad_occurrence = aggregated_contrib.values  # Shape: (n_sims,)
+            grad_occurrence = aggregated_contrib.values  # (n_sims,)
 
-            # Chain rule: d(std)/d(weight) = d(std)/d(occurrence) * d(occurrence)/d(weight)
+            # Chain rule: d(std)/d(weight) =
+            #   d(std)/d(occurrence) * d(occurrence)/d(weight)
             # d(std)/d(occurrence_i) = (occurrence_i - mean) / std
-            gradient[i] = np.mean((occ_values - mean_occ) * grad_occurrence) / std_occ
+            gradient[i] = (
+                np.mean((occ_values - mean_occ) * grad_occurrence)
+                / std_occ
+            )
 
         return gradient
 
@@ -739,11 +749,13 @@ def create_metric_calculator(
     pal_variable: ProteusVariable,
     item_ids: list[str],
 ) -> tuple[Callable[[np.ndarray], float], Callable[[np.ndarray], np.ndarray] | None]:
-    """Factory function to choose the appropriate calculator based on metric type and data type.
+    """Factory function to choose the appropriate calculator.
 
+    Chooses calculator based on metric type and data type.
     This is the main entry point that handles:
     - 3 base metric types: MeanMetric, StdMetric, SpreadVarMetric
-    - 4 composite metric types: RatioMetric, ProductMetric, SumMetric, DifferenceMetric
+    - 4 composite metric types: RatioMetric, ProductMetric,
+      SumMetric, DifferenceMetric
     - 2 data types: StochasticScalar, FreqSevSims
 
     Composite metrics recursively call this function for their sub-metrics.
@@ -832,12 +844,14 @@ def objective_wrapper(
 
     Args:
         value_func: Portfolio metric calculator
-        gradient_func: Portfolio metric gradient calculator (None for gradient-free optimization)
+        gradient_func: Portfolio metric gradient calculator
+        (None for gradient-free optimization)
         direction: "maximize" or "minimize"
 
     Returns:
-        Tuple of (scipy_objective, scipy_gradient) where scipy minimizes
-        scipy_gradient is None if gradient_func is None (gradient-free optimization)
+        Tuple of (scipy_objective, scipy_gradient) where scipy
+        minimizes. scipy_gradient is None if gradient_func is None
+        (gradient-free optimization)
 
     Note:
         Since scipy.optimize.minimize() minimizes functions, we negate
