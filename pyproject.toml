@@ -91,6 +91,9 @@ paths = ["optimizer"]
 min_confidence = 80
 exclude = ["__pypackages__/"]
 
+[tool.pdm.python]
+use_venv = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

@@ -10,19 +10,24 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     build-essential \
     git \
+    nodejs \
+    npm \
     locales \
     && rm -rf /var/lib/apt/lists/* \
     && sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen \
     && locale-gen
 
-# Install PDM for package management
-RUN pip install --no-cache-dir pdm
+# Install pyright globally for type checking
+RUN npm install -g pyright
+
+# Install uv and PDM for fast package management
+RUN pip install uv pdm
 
 # Set working directory
 WORKDIR /app
 
 # Copy dependency files
-COPY pyproject.toml ./
+COPY pyproject.toml pdm.lock* ./
 
 # Dependencies will be installed via PDM
 
