@@ -80,12 +80,16 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "D103"] # Allow assert and skip test function docstrings
 "examples/*" = ["D"]       # Skip docstrings in examples
+"optimizer/__init__.py" = ["F403"] # Allow star imports in package init
 
-[tool.mypy]
-python_version = "3.13"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
+[tool.bandit]
+exclude_dirs = ["tests", "__pypackages__"]  # Tests contain patterns that trigger false positives
+skips = ["B101"]  # Skip assert_used test - asserts are normal in tests
+
+[tool.vulture]
+paths = ["optimizer"]
+min_confidence = 80
+exclude = ["__pypackages__/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -101,4 +105,7 @@ test = [
 ]
 dev = [
     "ruff>=0.14.10",
+    "bandit>=1.7.0",
+    "vulture>=2.11",
+    "pyright>=1.1.350",
 ]

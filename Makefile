@@ -8,8 +8,10 @@ help:
 	@echo "  lint-fix       - Auto-fix lint issues with ruff"
 	@echo "  format         - Run ruff formatting"
 	@echo "  format-check   - Check ruff formatting without making changes"
-	@echo "  typecheck      - Run mypy type checking"
-	@echo "  static-analysis - Run all static analysis tools (lint, format, typecheck)"
+	@echo "  typecheck      - Run pyright type checking"
+	@echo "  security       - Run bandit security checks"
+	@echo "  deadcode       - Run vulture dead code detection"
+	@echo "  static-analysis - Run all static analysis tools (lint, format, typecheck, security, deadcode)"
 	@echo "  test           - Run pytest with coverage"
 	@echo "  check          - Run all checks (static-analysis + tests)"
 	@echo "  build          - Build the package"
@@ -18,7 +20,7 @@ help:
 # Static analysis targets
 .PHONY: lint
 lint:
-	pdm run ruff check optimizer tests
+	pdm run ruff check optimizer tests examples
 
 .PHONY: lint-fix
 lint-fix:
@@ -26,18 +28,27 @@ lint-fix:
 
 .PHONY: format
 format:
-	pdm run ruff format optimizer tests
+	pdm run ruff format optimizer tests examples
 
 .PHONY: format-check
 format-check:
-	pdm run ruff format --check optimizer tests
+	pdm run ruff format --check optimizer tests examples
 
 .PHONY: typecheck
 typecheck:
-	pdm run mypy optimizer/
+	pdm run pyright
+
+.PHONY: security
+security:
+	pdm run bandit -r optimizer
+
+.PHONY: deadcode
+deadcode:
+	pdm run vulture optimizer
 
 .PHONY: static-analysis
-static-analysis: lint format-check typecheck
+static-analysis: lint format-check typecheck security deadcode
+	@echo "All static analysis checks completed"
 
 # Testing targets
 .PHONY: test
