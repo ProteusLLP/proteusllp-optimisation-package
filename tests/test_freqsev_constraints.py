@@ -726,9 +726,7 @@ class TestFreqSevEdgeCases:
 
 
 class TestFreqSevFailureCases:
-    """Test optimizer handles infeasible/conflicting FreqSev
-    constraints gracefully.
-    """
+    """Test optimizer handles infeasible/conflicting FreqSev constraints gracefully."""
 
     def test_conflicting_freqsev_constraints(self):
         """Test that conflicting FreqSev constraints are detected."""

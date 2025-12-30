@@ -197,7 +197,7 @@ def create_scalar_mean(
     means_array = np.array([asset_means[item_id] for item_id in item_ids])
 
     def portfolio_mean_value(weights: np.ndarray) -> float:
-        """Compute portfolio expected return: Σ(wᵢ * E[Rᵢ])"""
+        """Compute portfolio expected return: Σ(wᵢ * E[Rᵢ])."""
         return float(np.dot(weights, means_array))
 
     def portfolio_mean_gradient(weights: np.ndarray) -> np.ndarray:
@@ -247,7 +247,7 @@ def create_scalar_std(
     cov_matrix = np.cov(sim_matrix, rowvar=False)
 
     def portfolio_std_value(weights: np.ndarray) -> float:
-        """Compute portfolio standard deviation: √(w'Σw)"""
+        """Compute portfolio standard deviation: √(w'Σw)."""
         portfolio_variance = np.dot(weights, np.dot(cov_matrix, weights))
 
         # Handle numerical edge cases

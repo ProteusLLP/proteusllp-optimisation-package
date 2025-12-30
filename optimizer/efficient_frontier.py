@@ -68,7 +68,9 @@ def generate_efficient_frontier(
 
         # Update each varied constraint's threshold
         for variation, thresholds in zip(
-            frontier_input.constraint_variations, thresholds_by_constraint
+            frontier_input.constraint_variations,
+            thresholds_by_constraint,
+            strict=True,
         ):
             new_threshold = thresholds[i]
 

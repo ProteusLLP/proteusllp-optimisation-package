@@ -12,7 +12,7 @@ Key Features:
 - Self-documenting models with field descriptions
 """
 
-from typing import Any, Literal, Union
+from typing import Any, Literal
 
 import numpy as np
 from pal import FreqSevSims, StochasticScalar  # type: ignore
@@ -35,6 +35,8 @@ class MeanMetric(BaseModel):
     type: str = Field(default="mean", description="Metric type")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
@@ -44,6 +46,8 @@ class StdMetric(BaseModel):
     type: str = Field(default="std", description="Metric type")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
@@ -59,6 +63,7 @@ class SpreadVarMetric(BaseModel):
     @field_validator("lower_percentile", "upper_percentile")
     @classmethod
     def validate_percentiles(cls, v: float) -> float:
+        """Validate that percentiles are in [0, 100] range."""
         if not (0 <= v <= 100):
             raise ValueError(f"Percentiles must be between 0-100, got {v}")
         return v
@@ -66,6 +71,7 @@ class SpreadVarMetric(BaseModel):
     @field_validator("upper_percentile")
     @classmethod
     def validate_range(cls, v: float, info: Any) -> float:
+        """Validate that upper_percentile > lower_percentile."""
         # Only validate range if lower_percentile is available and valid
         if "lower_percentile" in info.data:
             lower = info.data["lower_percentile"]
@@ -76,6 +82,8 @@ class SpreadVarMetric(BaseModel):
         return v
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
@@ -90,6 +98,8 @@ class RatioMetric(BaseModel):
     denominator: "Metric" = Field(description="Denominator metric")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
@@ -101,6 +111,8 @@ class ProductMetric(BaseModel):
     factor2: "Metric" = Field(description="Second factor metric")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
@@ -112,6 +124,8 @@ class SumMetric(BaseModel):
     metric2: "Metric" = Field(description="Second metric to sum")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
@@ -126,19 +140,21 @@ class DifferenceMetric(BaseModel):
     metric2: "Metric" = Field(description="Metric to subtract")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
 # Union type for all metrics (including composite metrics)
-Metric = Union[
-    MeanMetric,
-    StdMetric,
-    SpreadVarMetric,
-    RatioMetric,
-    ProductMetric,
-    SumMetric,
-    DifferenceMetric,
-]
+Metric = (
+    MeanMetric
+    | StdMetric
+    | SpreadVarMetric
+    | RatioMetric
+    | ProductMetric
+    | SumMetric
+    | DifferenceMetric
+)
 
 
 # ============================================================================
@@ -153,6 +169,8 @@ class BoundsSpec(BaseModel):
     upper: float = Field(default=np.inf, description="Upper bound")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
     @model_validator(mode="after")
@@ -190,6 +208,8 @@ class ObjectiveSpec(BaseModel):
     metric: Metric = Field(..., description="Metric specification")
 
     class Config:
+        """Pydantic configuration."""
+
         arbitrary_types_allowed = True  # For PAL objects
         validate_assignment = True
 
@@ -266,6 +286,8 @@ class SimpleConstraint(BaseModel):
     )
 
     class Config:
+        """Pydantic configuration."""
+
         arbitrary_types_allowed = True
         validate_assignment = True
 
@@ -356,6 +378,8 @@ class FreqSevConstraint(BaseModel):
     )
 
     class Config:
+        """Pydantic configuration."""
+
         arbitrary_types_allowed = True
         validate_assignment = True
 
@@ -424,6 +448,8 @@ class OptimizationInput(BaseModel):
     _constraint_scales: list[float] | None = PrivateAttr(default=None)
 
     class Config:
+        """Pydantic configuration."""
+
         arbitrary_types_allowed = True
         validate_assignment = True
 
@@ -697,7 +723,7 @@ class OptimizationInput(BaseModel):
 
         # Align existing shares with target items and enforce bounds
         aligned_shares: dict[str, float] = {}
-        EPSILON = 1e-6  # Small offset to ensure strict feasibility
+        epsilon = 1e-6  # Small offset to ensure strict feasibility
 
         for item_id in self.item_ids:
             if item_id in self.current_shares:
@@ -717,11 +743,11 @@ class OptimizationInput(BaseModel):
                     and share <= bounds.lower
                 ):
                     # Below or at positive lower bound → move slightly above
-                    share = bounds.lower + EPSILON
+                    share = bounds.lower + epsilon
                 elif bounds.upper is not None and share >= bounds.upper:
                     # Above or at upper bound → move slightly below
-                    share = bounds.upper - EPSILON
-                # Note: If lower=0 and share=0, leave it as 0 (don't force to EPSILON)
+                    share = bounds.upper - epsilon
+                # Note: If lower=0 and share=0, leave it as 0 (don't force to epsilon)
 
             aligned_shares[item_id] = share
 
@@ -981,6 +1007,8 @@ class ConstraintResult(BaseModel):
     is_satisfied: bool = Field(..., description="Whether constraint is satisfied")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
 
@@ -1005,6 +1033,8 @@ class OptimizationResult(BaseModel):
     )
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
     @property
@@ -1034,6 +1064,8 @@ class ConstraintVariation(BaseModel):
     max_threshold: float = Field(..., description="Ending threshold value")
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
     @model_validator(mode="after")
@@ -1061,6 +1093,8 @@ class EfficientFrontierInput(BaseModel):
     )
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
     @model_validator(mode="after")
@@ -1116,6 +1150,8 @@ class EfficientFrontierResult(BaseModel):
     )
 
     class Config:
+        """Pydantic configuration."""
+
         frozen = True
 
     @property

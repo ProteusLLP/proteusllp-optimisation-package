@@ -170,7 +170,7 @@ class TestBasicEfficientFrontier:
 
         thresholds = np.linspace(0.008, 0.025, 5)
         for threshold, risk, ret, weight in zip(
-            thresholds, risks_list, returns_list, risky_weights
+            thresholds, risks_list, returns_list, risky_weights, strict=True
         ):
             print(
                 f"{threshold:>10.4f}   {risk:>10.4f}   {ret:>10.4f}   {weight:>8.1f}%"

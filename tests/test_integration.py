@@ -36,9 +36,7 @@ class TestMixedConstraintTypes:
     """Test optimizations with both simple and FreqSev constraints together."""
 
     def test_simple_and_freqsev_constraints_combined(self):
-        """Test optimization with both simple variance constraint
-        and FreqSev loss constraint.
-        """
+        """Test optimization with both simple and FreqSev constraints."""
         # Portfolio with 3 assets
         portfolio = ProteusVariable(
             "item",
@@ -397,9 +395,7 @@ class TestFullAPIWorkflow:
     """Test complete API workflow from input creation to result analysis."""
 
     def test_full_workflow_input_to_result(self):
-        """Test complete workflow: create input → validate →
-        preprocess → optimize → analyze result.
-        """
+        """Test complete workflow: input validation, preprocess, optimize, analyze."""
         # Step 1: Create input data
         portfolio = ProteusVariable(
             "item",
@@ -454,7 +450,7 @@ class TestFullAPIWorkflow:
         )  # Non-negative slack for satisfied constraint
 
         # Test result is frozen (immutable)
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):  # Pydantic raises ValidationError
             result.success = False  # Should fail - result is frozen
 
     def test_workflow_with_validation_error(self):
@@ -476,9 +472,7 @@ class TestEfficientFrontierIntegration:
     """Test efficient frontier generation with complex setups."""
 
     def test_efficient_frontier_with_composite_objective(self):
-        """Test efficient frontier with Sharpe ratio objective
-        and varying risk constraint.
-        """
+        """Test efficient frontier with Sharpe ratio objective and risk constraint."""
         portfolio = ProteusVariable(
             "item",
             {
@@ -537,9 +531,7 @@ class TestEfficientFrontierIntegration:
         assert frontier_result.n_successful >= 3
 
     def test_efficient_frontier_with_mixed_constraints(self):
-        """Test efficient frontier with both simple and FreqSev
-        constraints, varying one FreqSev.
-        """
+        """Test efficient frontier with simple and FreqSev constraints."""
         portfolio = ProteusVariable(
             "item",
             {
@@ -633,9 +625,7 @@ class TestRealWorldScenarios:
     """Test scenarios that mimic real-world portfolio optimization use cases."""
 
     def test_risk_parity_style_allocation(self):
-        """Test allocation seeking to equalize risk contributions
-        (minimize std deviation).
-        """
+        """Test allocation seeking to equalize risk contributions (minimize std)."""
         # 3 assets with different risk levels
         portfolio = ProteusVariable(
             "item",

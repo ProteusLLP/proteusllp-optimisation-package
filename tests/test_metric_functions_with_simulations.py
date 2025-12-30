@@ -20,9 +20,7 @@ from pal.variables import ProteusVariable
 
 
 class TestMeanCalculatorAgainstSimulations:
-    """Verify mean calculator matches ground truth from manual
-    simulation computation.
-    """
+    """Verify mean calculator matches ground truth from manual computation."""
 
     def test_mean_matches_weighted_portfolio_mean(self):
         """Test: value_func(weights) should equal mean of (sim1 * w1 + sim2 * w2).
@@ -235,8 +233,7 @@ class TestSpreadVarCalculatorAgainstSimulations:
         np.testing.assert_allclose(sv_value, mean_value, rtol=1e-10)
 
     def test_spreadvar_top_tail_matches_manual_computation(self):
-        """Test: SpreadVar(80, 100) should equal mean of top 20% of
-        weighted portfolio sims.
+        """Test: SpreadVar(80, 100) equals mean of top 20% of portfolio sims.
 
         This verifies percentile filtering works correctly.
         """
@@ -283,9 +280,7 @@ class TestSpreadVarCalculatorAgainstSimulations:
         )
 
     def test_spreadvar_bottom_tail_matches_manual_computation(self):
-        """Test: SpreadVar(0, 20) should equal mean of bottom 20%
-        of weighted portfolio sims.
-        """
+        """Test: SpreadVar(0, 20) equals mean of bottom 20% of sims."""
         np.random.seed(43)
         n_sims = 100
         sims1 = np.random.normal(100, 20, n_sims)
@@ -329,8 +324,7 @@ class TestSpreadVarCalculatorAgainstSimulations:
         )
 
     def test_spreadvar_middle_range(self):
-        """Test: SpreadVar(40, 60) should equal mean of middle 20%
-        of weighted portfolio.
+        """Test: SpreadVar(40, 60) equals mean of middle 20% of portfolio.
 
         Tests percentile range that doesn't include endpoints.
         """
@@ -378,9 +372,7 @@ class TestSpreadVarCalculatorAgainstSimulations:
 
 
 class TestGradientConsistencyWithValues:
-    """Test that gradients are consistent with value functions
-    via numerical differentiation.
-    """
+    """Test gradients match value functions via numerical differentiation."""
 
     def test_mean_gradient_via_numerical_differentiation(self):
         """Verify mean gradient matches numerical derivative of value function."""
