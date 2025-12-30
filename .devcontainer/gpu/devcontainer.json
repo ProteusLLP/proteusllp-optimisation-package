@@ -15,11 +15,7 @@
         // Mount source so that mods persist after the container dies
         "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
         // Mount SSH keys from host for git authentication
-        "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
-        // === TEMPORARY DEV MOUNT - REMOVE BEFORE PUBLISHING ===
-        // Mount local PAL repository for development (until 0.2.8 is published to PyPI)
-        "source=${localWorkspaceFolder}/../proteusllp-actuarial-library,target=/pal-local,type=bind,consistency=cached"
-        // === END TEMPORARY DEV MOUNT ===
+        "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
     ],
     "containerEnv": {},
     "customizations": {

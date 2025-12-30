@@ -43,13 +43,13 @@ RUN pip install uv pdm
 # Set working directory
 WORKDIR /app
 
-# Copy dependency files
-COPY pyproject.toml pdm.lock* ./
+# Copy dependency files and PAL wheel
+COPY pyproject.toml ./
+COPY proteusllp_actuarial_library-*.whl ./
 
-# Install only main dependencies using PDM with uv backend
-RUN pdm install --no-self
+# Dependencies will be installed via PDM
 
-# DEVELOPMENT STAGE ===========================
+# DEVELOPMENT STAGE ========================================
 FROM base AS dev
 
 # Install development tools
@@ -63,19 +63,19 @@ RUN useradd -m -s /bin/bash vscode && \
     usermod -aG sudo vscode && \
     echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Install dev dependencies (test + dev groups)
-RUN pdm install -dG test -dG dev --no-self
+# Dependencies will be installed via PDM in postCreateCommand
+# This keeps the dev image lightweight
 
 # Switch to non-root user
 USER vscode
 
 # Set working directory
-WORKDIR /workspace
+WORKDIR /proteus-optimisation-package
 
 # Expose Jupyter port
 EXPOSE 8888
 
-# CI STAGE ===========================
+# CI STAGE ==================================================
 FROM base AS ci
 
 # Set working directory
@@ -84,5 +84,8 @@ WORKDIR /app
 # Copy source code for CI
 COPY . .
 
-# Install test dependencies and the package itself
+# Install dependencies and package with PDM
 RUN pdm install -dG test
+
+# Run tests by default
+CMD ["pytest", "tests/", "-v", "--cov=optimizer", "--cov-report=term-missing"]

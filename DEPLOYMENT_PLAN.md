@@ -21,16 +21,15 @@ This document outlines the remaining steps to deploy POP to PyPI.
 - Remote configured: `https://github.com/ProteusLLP/proteusllp-optimisation-package.git`
 
 ❌ **Blocked by PAL 0.2.8 Publication:**
-- Removal of temporary local PAL setup (pyproject.toml + devcontainer mounts)
-- `pdm.lock` file generation
+- Switching from wheel to PyPI PAL dependency
+- `pdm.lock` file regeneration with PyPI PAL
 - Testing with PyPI-installed PAL
 - First PyPI release
 
 ⚠️ **Current Development Setup:**
-- Local PAL mounted at `/pal-local` in devcontainers
-- `pyproject.toml` references local PAL via file:///pal-local
-- All temporary configs marked with `=== TEMPORARY ... ===` comments
-- **MUST BE REMOVED before publishing** (see Phase 3.0)
+- Using local PAL wheel: `proteusllp_actuarial_library-0.2.8.dev10+g27c24bb-py3-none-any.whl`
+- Single line change needed in `pyproject.toml` to switch to PyPI
+- **Switch to PyPI when available** (see Phase 3.0)
 
 🔄 **Pending (Not Blocked):**
 - GitHub repository creation
@@ -125,48 +124,46 @@ git push -u origin feature/initial-package-structure
 
 ### Current Temporary Setup for Development
 
-**The following temporary configurations are in place to enable testing with local PAL:**
+**Using a local wheel file as a simple temporary solution:**
 
-1. **`pyproject.toml`** - Lines 25-30:
-   - Uses local PAL: `"proteusllp-actuarial-library @ file:///pal-local"`
-   - Marked with `=== TEMPORARY DEV SETUP ===` comments
+1. **`proteusllp_actuarial_library-0.2.8.dev10+g27c24bb-py3-none-any.whl`** - In project root
+   - Wheel file copied from PAL build output
+   - Referenced in `pyproject.toml` with `file://` URL
 
-2. **`.devcontainer/cpu/devcontainer.json`** - Lines 13-16:
-   - Mounts local PAL at `/pal-local`
-   - Marked with `=== TEMPORARY DEV MOUNT ===` comments
+2. **`pyproject.toml`** - Line 27:
+   - Uses wheel: `"proteusllp-actuarial-library @ file://proteusllp_actuarial_library-0.2.8.dev10+g27c24bb-py3-none-any.whl"`
+   - **Single line change** when switching to PyPI
 
-3. **`.devcontainer/gpu/devcontainer.json`** - Lines 17-20:
-   - Mounts local PAL at `/pal-local`
-   - Marked with `=== TEMPORARY DEV MOUNT ===` comments
+3. **`Dockerfile.cpu`** - Copies wheel into image:
+   - `COPY proteusllp_actuarial_library-*.whl ./`
 
 ### Prerequisites:
 - `proteusllp-actuarial-library>=0.2.8` must be available on PyPI
-- Current pyproject.toml requires: `proteusllp-actuarial-library>=0.2.8` (commented out during dev)
 
 ### Once PAL is Published:
 
-**3.0 Remove Temporary Development Setup** ⚠️ **CRITICAL - DO THIS FIRST**
+**3.0 Switch from Wheel to PyPI** ⚠️ **CRITICAL - DO THIS FIRST**
 
 ```bash
-# Edit pyproject.toml:
-# 1. DELETE line: "proteusllp-actuarial-library @ file:///pal-local",
-# 2. UNCOMMENT line: # "proteusllp-actuarial-library>=0.2.8",
-# 3. DELETE all lines marked with "=== TEMPORARY DEV SETUP ==="
+# Edit pyproject.toml - Line 27:
+# Change from:
+# "proteusllp-actuarial-library @ file://proteusllp_actuarial_library-0.2.8.dev10+g27c24bb-py3-none-any.whl",
+# To:
+# "proteusllp-actuarial-library>=0.2.8",
 
-# Edit .devcontainer/cpu/devcontainer.json:
-# 1. DELETE the PAL mount line (line with /pal-local)
-# 2. DELETE all lines marked with "=== TEMPORARY DEV MOUNT ==="
+# Delete the wheel file (no longer needed)
+rm proteusllp_actuarial_library-*.whl
 
-# Edit .devcontainer/gpu/devcontainer.json:
-# 1. DELETE the PAL mount line (line with /pal-local)
-# 2. DELETE all lines marked with "=== TEMPORARY DEV MOUNT ==="
+# Update Dockerfile.cpu to remove wheel COPY
+# Remove line: COPY proteusllp_actuarial_library-*.whl ./
 
-# Commit these changes first!
-git add pyproject.toml .devcontainer/cpu/devcontainer.json .devcontainer/gpu/devcontainer.json
-git commit -m "Remove temporary local PAL setup for PyPI release
+# Commit changes
+git add pyproject.toml Dockerfile.cpu
+git rm proteusllp_actuarial_library-*.whl
+git commit -m "Switch to PyPI PAL dependency
 
-- Switch to PyPI PAL dependency (>=0.2.8)
-- Remove local PAL mount from devcontainers
+- Replace wheel file with PyPI dependency (>=0.2.8)
+- Remove wheel from Dockerfile
 - Ready for production publishing"
 ```
 
@@ -429,10 +426,11 @@ python -c "import optimizer; print(optimizer.__version__)"
 - [ ] Add Codecov token (optional)
 
 ### After PAL 0.2.8 Published
-- [ ] **CRITICAL: Remove temporary local PAL setup** (pyproject.toml + devcontainer mounts)
-- [ ] Commit the cleanup changes
+- [ ] **CRITICAL: Switch from wheel to PyPI PAL** (pyproject.toml one-line change)
+- [ ] Delete wheel file and update Dockerfile
+- [ ] Commit the changes
 - [ ] Rebuild devcontainer
-- [ ] Generate pdm.lock file
+- [ ] Regenerate pdm.lock with PyPI PAL
 - [ ] Test installation with PyPI PAL
 - [ ] Run full test suite
 - [ ] Create PR with pdm.lock
