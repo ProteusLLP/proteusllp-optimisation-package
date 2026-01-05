@@ -23,10 +23,7 @@ classifiers = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    # === TEMPORARY: Using local wheel until PAL 0.2.8 is on PyPI ===
-    "proteusllp-actuarial-library @ file:///${PROJECT_ROOT}/proteusllp_actuarial_library-0.2.8.dev10+g27c24bb-py3-none-any.whl",
-    # When PAL 0.2.8 is published, replace the line above with:
-    # "proteusllp-actuarial-library>=0.2.8",
+    "proteusllp-actuarial-library>=0.2.8",
     "numpy>=2.2",
     "scipy>=1.15",
     "pydantic>=2.0",

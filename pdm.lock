@@ -5,7 +5,7 @@
 groups = ["default", "dev", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:c52145719b18d2c2d43dc08e6684581b09acfe66fd3b02263dec96a959af8c7f"
+content_hash = "sha256:181325fc17f935c425033b2fdcc10647d1c1f2a4d85d63cf10047aaed543506d"
 
 [[metadata.targets]]
 requires_python = ">=3.13"
@@ -458,9 +458,8 @@ files = [
 
 [[package]]
 name = "proteusllp-actuarial-library"
-version = "0.2.8.dev10"
+version = "0.2.8"
 requires_python = ">=3.13"
-path = "./proteusllp_actuarial_library-0.2.8.dev10+g27c24bb-py3-none-any.whl"
 summary = "Proteus Actuarial Library: A package for building and running stochastic actuarial models in Python."
 groups = ["default"]
 dependencies = [
@@ -472,7 +471,8 @@ dependencies = [
     "scipy>=1.15",
 ]
 files = [
-    {file = "proteusllp_actuarial_library-0.2.8.dev10+g27c24bb-py3-none-any.whl", hash = "sha256:a09944967eab7a3ff93993c7bb607bb5a3bf41b03f0f4f8757509f4ac90ba6d1"},
+    {file = "proteusllp_actuarial_library-0.2.8-py3-none-any.whl", hash = "sha256:49f06fe7aa87b7faa906c320f882f305bba51728f787d5a392974e4f6b531030"},
+    {file = "proteusllp_actuarial_library-0.2.8.tar.gz", hash = "sha256:c83fc9e972cec23ea32fa5512f51ccb045d45f5e444de27218dd289839a67529"},
 ]
 
 [[package]]
