@@ -1,18 +1,22 @@
 <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background circle -->
-  <circle cx="100" cy="100" r="95" fill="#1e3a8a" stroke="#3b82f6" stroke-width="3"/>
+  <!-- Background -->
+  <rect width="200" height="200" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2" rx="10"/>
   
-  <!-- POP text -->
-  <text x="100" y="120" font-family="Arial, sans-serif" font-size="72" font-weight="bold" 
-        fill="#60a5fa" text-anchor="middle">POP</text>
+  <!-- Diagonal stripes pattern -->
+  <defs>
+    <pattern id="stripes" patternUnits="userSpaceOnUse" width="20" height="20" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="20" stroke="#e5e7eb" stroke-width="15"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#stripes)" opacity="0.5" rx="10"/>
   
-  <!-- Subtitle -->
-  <text x="100" y="150" font-family="Arial, sans-serif" font-size="14" 
-        fill="#93c5fd" text-anchor="middle">Proteus Optimisation</text>
+  <!-- COMING SOON text -->
+  <text x="100" y="90" font-family="Arial, sans-serif" font-size="24" font-weight="bold" 
+        fill="#6b7280" text-anchor="middle">COMING</text>
+  <text x="100" y="120" font-family="Arial, sans-serif" font-size="24" font-weight="bold" 
+        fill="#6b7280" text-anchor="middle">SOON</text>
   
-  <!-- Decorative optimization graph line -->
-  <path d="M 30 80 Q 60 60, 100 65 T 170 50" 
-        stroke="#60a5fa" stroke-width="3" fill="none" opacity="0.4"/>
-  <circle cx="100" cy="65" r="4" fill="#fbbf24"/>
-  <circle cx="170" cy="50" r="4" fill="#10b981"/>
+  <!-- Small subtitle -->
+  <text x="100" y="150" font-family="Arial, sans-serif" font-size="12" 
+        fill="#9ca3af" text-anchor="middle">Logo placeholder</text>
 </svg>
