@@ -45,7 +45,7 @@ Issues = "https://github.com/ProteusLLP/proteusllp-optimisation-package/issues"
 Documentation = "https://proteusllp-optimisation-package.readthedocs.io/"
 
 [build-system]
-requires = ["pdm-backend"]
+requires = ["pdm-backend", "pdm-backend[scm]"]
 build-backend = "pdm.backend"
 
 # Static analysis tool configurations
@@ -87,6 +87,9 @@ skips = ["B101"]  # Skip assert_used test - asserts are normal in tests
 paths = ["optimizer"]
 min_confidence = 80
 exclude = ["__pypackages__/"]
+
+[tool.pdm.version]
+source = "scm"
 
 [tool.pdm.python]
 use_venv = true
