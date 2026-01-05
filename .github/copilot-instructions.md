@@ -146,7 +146,7 @@ make format
 2. **Import naming**: Check current PAL documentation for correct class names
 3. **File editing**: Use large context windows to avoid corruption
 4. **Package structure**: Keep exports in `__init__.py` clean and organized
-5. **Requirements**: When PAL is published to PyPI, swap commented lines in requirements.txt
+5. **PAL Installation**: Package now uses PAL 0.2.8+ from PyPI
 
 ## 📖 Architecture Notes
 

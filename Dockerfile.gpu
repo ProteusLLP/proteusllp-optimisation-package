@@ -17,21 +17,26 @@ RUN apt-get update && apt-get install -y \
     && sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen \
     && locale-gen
 
+# Set CUDA environment variables for compilation (must be set before use in RUN)
+ENV CUDA_HOME=/usr/local/cuda-12.4
+ENV PATH=${CUDA_HOME}/bin:${PATH}
+ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64
+ENV CUDACXX=${CUDA_HOME}/bin/nvcc
+
 # Add NVIDIA package repositories and install CUDA toolkit
 # Using CUDA 12.4 which is more widely available and compatible with driver 580.x
 # Installing cuda-toolkit-12-4 instead of cuda-runtime-12-4 to get development headers
 # required for CuPy to compile CUDA kernels at runtime
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64/cuda-keyring_1.1-1_all.deb \
+RUN wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 --tries=5 \
+        https://developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64/cuda-keyring_1.1-1_all.deb \
     && dpkg -i cuda-keyring_1.1-1_all.deb \
     && apt-get update \
-    && apt-get install -y cuda-toolkit-12-4 \
+    && apt-get install -y --no-install-recommends \
+        -o Acquire::Retries=5 \
+        -o Acquire::http::Timeout=120 \
+        -o Acquire::https::Timeout=120 \
+        cuda-toolkit-12-4 \
     && rm -rf /var/lib/apt/lists/* cuda-keyring_1.1-1_all.deb
-
-# Set CUDA environment variables for compilation
-ENV CUDA_HOME=/usr/local/cuda-12.4
-ENV PATH=${CUDA_HOME}/bin:${PATH}
-ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
-ENV CUDACXX=${CUDA_HOME}/bin/nvcc
 
 
 # Install pyright globally for type checking
@@ -43,9 +48,8 @@ RUN pip install uv pdm
 # Set working directory
 WORKDIR /app
 
-# Copy dependency files and PAL wheel
+# Copy dependency files
 COPY pyproject.toml ./
-COPY proteusllp_actuarial_library-*.whl ./
 
 # Dependencies will be installed via PDM
 
