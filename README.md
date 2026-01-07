@@ -1,8 +1,18 @@
-<div align="center">
-  <img src="POP.svg" alt="POP Logo" width="150"/>
-  <h1>Proteus Optimisation Package (POP)</h1>
-  <p>Domain-agnostic stochastic optimization engine for <a href="https://proteusllp-actuarial-library.readthedocs.io/">PAL (Proteus Actuarial Library)</a> variables.</p>
+<div style="display: flex; align-items: center; gap: 15px;">
+  <img src="POP.svg" alt="POP Logo" width="80"/>
+  <div>
+    <h1 style="margin: 0;">Proteus Optimisation Package (POP)</h1>
+    <p style="margin: 5px 0 0 0;">
+      <a href="https://proteusllp-optimisation-package.readthedocs.io/en/latest/?badge=latest">
+        <img src="https://readthedocs.org/projects/proteusllp-optimisation-package/badge/?version=latest" alt="Documentation Status"/>
+      </a>
+    </p>
+  </div>
 </div>
+
+<br/>
+
+Domain-agnostic stochastic optimization engine for [PAL (Proteus Actuarial Library)](https://proteusllp-actuarial-library.readthedocs.io/) variables.
 
 ## Features
 
