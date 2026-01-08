@@ -1,5 +1,5 @@
 <div style="display: flex; align-items: center; gap: 15px;">
-  <img src="POP.svg" alt="POP Logo" width="80"/>
+  <img src="https://raw.githubusercontent.com/ProteusLLP/proteusllp-optimisation-package/main/POP.svg" alt="POP Logo" width="80"/>
   <div>
     <h1 style="margin: 0;">Proteus Optimisation Package (POP)</h1>
     <p style="margin: 5px 0 0 0;">
