@@ -46,7 +46,7 @@ jobs:
         run: docker save proteusllp-optimisation-ci > proteusllp-optimisation-ci.tar
 
       - name: Upload Docker image
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: proteusllp-optimisation-ci-image
           path: proteusllp-optimisation-ci.tar
@@ -107,7 +107,7 @@ jobs:
             pdm run python -m compileall examples/ -f
 
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-reports
           path: coverage/
@@ -138,7 +138,7 @@ jobs:
             pdm build
 
       - name: Upload distributions
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: release-dists
           path: dist/
