@@ -6,6 +6,7 @@ updates:
   # Python dependencies - patch and minor updates only
   - package-ecosystem: "pip"
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -22,6 +23,7 @@ updates:
   # GitHub Actions updates
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
       day: "monday" 
