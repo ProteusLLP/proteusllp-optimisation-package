@@ -66,7 +66,7 @@ DEFAULT_CONFIG = {
     "max_iterations": 1000,
     "tolerances": {"ftol": 1e-8},
     "verbose": False,
-    "autoscale": True  # Enable automatic problem scaling
+    "autoscale": True,  # Enable automatic problem scaling
 }
 ```
 
@@ -146,12 +146,12 @@ opt_input = OptimizationInput(
     objective=ObjectiveSpec(
         objective_value=profits,  # Values in dollars
         metric=RatioMetric(...),
-        direction="maximize"
+        direction="maximize",
     ),
     share_bounds={
         "asset1": BoundsSpec(lower=50, upper=150),
-        "asset2": BoundsSpec(lower=100, upper=300)
-    }
+        "asset2": BoundsSpec(lower=100, upper=300),
+    },
 )
 
 # Preprocess (autoscaling happens internally)
@@ -187,16 +187,13 @@ print(result.objective_value)  # 0.085 (RoC ratio)
 ```python
 opt_input = OptimizationInput(
     ...,
-    config={"autoscale": True}  # or omit (default)
+    config={"autoscale": True},  # or omit (default)
 )
 ```
 
 **Disable autoscaling** (if needed):
 ```python
-opt_input = OptimizationInput(
-    ...,
-    config={"autoscale": False}
-)
+opt_input = OptimizationInput(..., config={"autoscale": False})
 ```
 
 **Verbose autoscaling output**:
@@ -205,8 +202,8 @@ opt_input = OptimizationInput(
     ...,
     config={
         "autoscale": True,
-        "verbose": True  # Prints scaling factors
-    }
+        "verbose": True,  # Prints scaling factors
+    },
 )
 ```
 
@@ -246,10 +243,7 @@ Autoscaling is beneficial in 99% of cases. Consider disabling only if:
 
 ```python
 # Example: Sharpe ratio
-sharpe = RatioMetric(
-    numerator=MeanMetric(),
-    denominator=StdMetric()
-)
+sharpe = RatioMetric(numerator=MeanMetric(), denominator=StdMetric())
 ```
 
 #### Specifications (4 models, ~200 lines)
@@ -296,14 +290,12 @@ All config options are optional and have sensible defaults:
 ```python
 config = {
     # Optimization control
-    "max_iterations": 1000,           # Maximum SLSQP iterations (int)
-    "tolerances": {"ftol": 1e-8},     # Function tolerance for convergence (dict)
-
+    "max_iterations": 1000,  # Maximum SLSQP iterations (int)
+    "tolerances": {"ftol": 1e-8},  # Function tolerance for convergence (dict)
     # Problem scaling
-    "autoscale": True,                 # Auto-normalize problem to O(1) (bool)
-
+    "autoscale": True,  # Auto-normalize problem to O(1) (bool)
     # Diagnostics
-    "verbose": False,                  # Print iteration details and scaling info (bool)
+    "verbose": False,  # Print iteration details and scaling info (bool)
 }
 ```
 
@@ -345,8 +337,8 @@ opt_input = OptimizationInput(
     simple_constraints=[risk_constraint],
     share_bounds={
         "asset1": BoundsSpec(lower=0, upper=150),
-        "asset2": BoundsSpec(lower=0, upper=250)
-    }
+        "asset2": BoundsSpec(lower=0, upper=250),
+    },
 )
 
 # Must preprocess before optimizing
@@ -361,11 +353,11 @@ opt_input = OptimizationInput(
     objective=objective_spec,
     current_shares={"asset1": 100, "asset2": 200},
     config={
-        "max_iterations": 500,        # Limit iterations
-        "tolerances": {"ftol": 1e-6}, # Looser tolerance for speed
-        "autoscale": True,             # Keep autoscaling enabled
-        "verbose": True                # See iteration progress
-    }
+        "max_iterations": 500,  # Limit iterations
+        "tolerances": {"ftol": 1e-6},  # Looser tolerance for speed
+        "autoscale": True,  # Keep autoscaling enabled
+        "verbose": True,  # See iteration progress
+    },
 )
 
 preprocessed = opt_input.preprocess()
@@ -565,14 +557,16 @@ frontier_input = EfficientFrontierInput(
             constraint_type="simple",
             constraint_name="max_risk",
             min_threshold=0.05,
-            max_threshold=0.15
+            max_threshold=0.15,
         )
     ],
-    n_points=11
+    n_points=11,
 )
 
 result = generate_efficient_frontier(frontier_input)
-print(f"Generated {result.n_successful}/{len(result.optimization_results)} successful points")
+print(
+    f"Generated {result.n_successful}/{len(result.optimization_results)} successful points"
+)
 ```
 
 **When to look here**:
@@ -587,23 +581,29 @@ print(f"Generated {result.n_successful}/{len(result.optimization_results)} succe
 ### Basic Optimization
 ```python
 from pop import (
-    OptimizationInput, ObjectiveSpec, SimpleConstraint,
-    MeanMetric, StdMetric, BoundsSpec, optimize
+    OptimizationInput,
+    ObjectiveSpec,
+    SimpleConstraint,
+    MeanMetric,
+    StdMetric,
+    BoundsSpec,
+    optimize,
 )
 from pal.variables import ProteusVariable
 from pal import StochasticScalar
 
 # 1. Create portfolio variable
-portfolio = ProteusVariable("item", {
-    "asset1": StochasticScalar([100, 110, 90]),
-    "asset2": StochasticScalar([200, 220, 180])
-})
+portfolio = ProteusVariable(
+    "item",
+    {
+        "asset1": StochasticScalar([100, 110, 90]),
+        "asset2": StochasticScalar([200, 220, 180]),
+    },
+)
 
 # 2. Define objective
 objective = ObjectiveSpec(
-    objective_value=portfolio,
-    metric=MeanMetric(),
-    direction="maximize"
+    objective_value=portfolio, metric=MeanMetric(), direction="maximize"
 )
 
 # 3. Add constraint
@@ -612,7 +612,7 @@ risk_constraint = SimpleConstraint(
     threshold=15.0,
     direction="cap",
     metric=StdMetric(),
-    name="max_risk"
+    name="max_risk",
 )
 
 # 4. Create optimization input
@@ -623,8 +623,8 @@ opt_input = OptimizationInput(
     simple_constraints=[risk_constraint],
     share_bounds={
         "asset1": BoundsSpec(lower=0, upper=100),
-        "asset2": BoundsSpec(lower=0, upper=100)
-    }
+        "asset2": BoundsSpec(lower=0, upper=100),
+    },
 )
 
 # 5. Preprocess and optimize
@@ -641,15 +641,10 @@ if result.success:
 from pop import RatioMetric, MeanMetric, StdMetric
 
 # Define Sharpe-like ratio
-sharpe = RatioMetric(
-    numerator=MeanMetric(),
-    denominator=StdMetric()
-)
+sharpe = RatioMetric(numerator=MeanMetric(), denominator=StdMetric())
 
 objective = ObjectiveSpec(
-    objective_value=portfolio,
-    metric=sharpe,
-    direction="maximize"
+    objective_value=portfolio, metric=sharpe, direction="maximize"
 )
 ```
 
@@ -661,18 +656,19 @@ import numpy as np
 
 # Create loss variable (CRITICAL: same sim_index for all assets!)
 sim_index = np.array([1, 2, 2, 3, 4], dtype=int)
-losses = ProteusVariable("item", {
-    "asset1": FreqSevSims(
-        sim_index=sim_index,
-        values=np.array([500, 700, 600, 800, 550]),
-        n_sims=5
-    ),
-    "asset2": FreqSevSims(
-        sim_index=sim_index,  # MUST be identical!
-        values=np.array([1500, 2000, 1800, 2200, 1600]),
-        n_sims=5
-    )
-})
+losses = ProteusVariable(
+    "item",
+    {
+        "asset1": FreqSevSims(
+            sim_index=sim_index, values=np.array([500, 700, 600, 800, 550]), n_sims=5
+        ),
+        "asset2": FreqSevSims(
+            sim_index=sim_index,  # MUST be identical!
+            values=np.array([1500, 2000, 1800, 2200, 1600]),
+            n_sims=5,
+        ),
+    },
+)
 
 # Constrain mean loss
 loss_constraint = FreqSevConstraint(
@@ -680,7 +676,7 @@ loss_constraint = FreqSevConstraint(
     threshold=1200.0,
     direction="cap",
     metric=MeanMetric(),
-    name="max_mean_loss"
+    name="max_mean_loss",
 )
 ```
 
