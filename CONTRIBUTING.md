@@ -11,18 +11,35 @@ We welcome pull requests, bug reports, and ideas that help improve this project.
    git checkout -b feature/your-feature-name
    ```
 
-2. **Make your changes**
+2. **Open changes against `dev`**
+
+   `dev` is the integration branch. Open pull requests for features, fixes, and
+   routine dependency updates against `dev`, rather than `main`.
+
+3. **Make your changes**
+
    Keep the code clean, documented, and consistent with existing style.
 
-3. **Run tests** before submitting a pull request:
+4. **Run tests** before submitting a pull request:
+
    ```bash
    make check
    ```
 
-4. **Submit a Pull Request (PR)**
+5. **Submit a Pull Request (PR)**
+
    - Provide a clear description of what the change does and why it's useful.
    - Reference any related issues.
    - Each PR should be focused on a single topic.
+
+## Branches and Releases
+
+- `dev` is where changes are integrated and validated.
+- `main` is the stable branch used for releases. Once `dev` is ready for
+  promotion, open a separate pull request from `dev` into `main`.
+- Create version tags and GitHub Releases from `main`. Publishing a GitHub
+  Release triggers the CI workflow to build the package and publish it to PyPI;
+  merging a pull request to `main` by itself does not publish a release.
 
 ## Contributor License Agreement (CLA)
 
